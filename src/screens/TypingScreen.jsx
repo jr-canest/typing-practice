@@ -341,6 +341,8 @@ export default function TypingScreen({ user, session, onFinish, onQuit }) {
       ref={containerRef}
       tabIndex={0}
       onKeyDown={handleKeyDown}
+      onClick={() => phase === 'typing' && containerRef.current?.focus()}
+      onBlur={() => phase === 'typing' && setTimeout(() => containerRef.current?.focus(), 10)}
       className="flex flex-col outline-none select-none relative overflow-hidden"
       style={{ cursor: 'default', backgroundColor: '#e8e9ed', height: '100dvh' }}
     >
