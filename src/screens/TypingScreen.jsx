@@ -100,6 +100,16 @@ export default function TypingScreen({ user, session, onFinish, onQuit }) {
   const currentWord = words[wordIndex] || ''
   const nextChar = currentWord[charIndex] || ' '
 
+  // Keep focus on the container during typing — grab on mount + reclaim if lost
+  useEffect(() => {
+    containerRef.current?.focus()
+    if (phase !== 'typing') return
+    const el = containerRef.current
+    const reclaim = () => requestAnimationFrame(() => el?.focus())
+    el?.addEventListener('blur', reclaim)
+    return () => el?.removeEventListener('blur', reclaim)
+  }, [phase])
+
   // Countdown
   useEffect(() => {
     if (phase !== 'countdown') return
@@ -341,8 +351,7 @@ export default function TypingScreen({ user, session, onFinish, onQuit }) {
       ref={containerRef}
       tabIndex={0}
       onKeyDown={handleKeyDown}
-      onClick={() => phase === 'typing' && containerRef.current?.focus()}
-      onBlur={() => phase === 'typing' && setTimeout(() => containerRef.current?.focus(), 10)}
+      onMouseDown={() => { if (phase === 'typing') requestAnimationFrame(() => containerRef.current?.focus()) }}
       className="flex flex-col outline-none select-none relative overflow-hidden"
       style={{ cursor: 'default', backgroundColor: '#e8e9ed', height: '100dvh' }}
     >
