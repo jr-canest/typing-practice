@@ -1,0 +1,127 @@
+@import "tailwindcss";
+
+@theme {
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+  --font-sans: 'Inter', 'Segoe UI', system-ui, sans-serif;
+  --color-sky-light: #e0f2fe;
+  --color-warm-orange: #fed7aa;
+  --color-finger-lpinky: #f9a8d4;
+  --color-finger-lring: #c4b5fd;
+  --color-finger-lmiddle: #93c5fd;
+  --color-finger-lindex: #6ee7b7;
+  --color-finger-rindex: #fcd34d;
+  --color-finger-rmiddle: #fdba74;
+  --color-finger-rring: #f87171;
+  --color-finger-rpinky: #e879f9;
+  --color-finger-thumb: #d1d5db;
+}
+
+@layer base {
+  html, body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+  }
+  body {
+    @apply font-sans;
+    background-color: #e8e9ed;
+    height: 100dvh;
+  }
+}
+
+/* Key press animation */
+@keyframes key-press {
+  0% { transform: scale(1); }
+  50% { transform: scale(0.92); }
+  100% { transform: scale(1); }
+}
+.key-pressed {
+  animation: key-press 0.15s ease-out;
+}
+
+/* Word slide animation */
+@keyframes slide-in {
+  from { transform: translateX(40px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+.word-slide-in {
+  animation: slide-in 0.3s ease-out;
+}
+
+/* Word completed ghost — scales up and fades out */
+@keyframes word-ghost {
+  0% { transform: scale(1); opacity: 0.8; }
+  100% { transform: scale(2); opacity: 0; }
+}
+.word-ghost {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  color: #22c55e;
+  animation: word-ghost 0.5s ease-out forwards;
+}
+
+/* Combo milestone popup — bounces in, hangs, fades out */
+@keyframes combo-popup {
+  0% { transform: scale(0.3); opacity: 0; }
+  15% { transform: scale(1.15); opacity: 1; }
+  25% { transform: scale(1); }
+  75% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(1.3); opacity: 0; }
+}
+.combo-popup {
+  animation: combo-popup 1.5s ease-out forwards;
+}
+
+/* Results screen — stat cards pop in */
+@keyframes results-stat {
+  0% { transform: scale(0.5) translateY(20px); opacity: 0; }
+  60% { transform: scale(1.05) translateY(0); }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+.results-stat {
+  opacity: 0;
+  animation: results-stat 0.5s ease-out forwards;
+}
+
+/* Results — emoji bounce */
+@keyframes results-bounce {
+  0% { transform: scale(0); }
+  50% { transform: scale(1.3); }
+  70% { transform: scale(0.9); }
+  100% { transform: scale(1); }
+}
+.results-bounce {
+  animation: results-bounce 0.6s ease-out;
+}
+
+/* New record banner */
+@keyframes new-record-banner {
+  0% { transform: scale(0.5) rotate(-2deg); opacity: 0; }
+  50% { transform: scale(1.05) rotate(1deg); }
+  70% { transform: scale(0.98) rotate(-0.5deg); }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+.new-record-banner {
+  animation: new-record-banner 0.6s ease-out;
+}
+
+/* Confetti falling */
+@keyframes confetti-fall {
+  0% { transform: translateY(0) translateX(0) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(100vh) translateX(var(--drift, 0px)) rotate(720deg); opacity: 0; }
+}
+.confetti-fall {
+  animation: confetti-fall 2s ease-in forwards;
+}
+
+/* Countdown animation */
+@keyframes countdown-pop {
+  0% { transform: scale(0.5); opacity: 0; }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); opacity: 1; }
+}
+.countdown-pop {
+  animation: countdown-pop 0.5s ease-out;
+}

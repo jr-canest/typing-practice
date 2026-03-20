@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm create:*)",
+      "Bash(npm install:*)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(gh auth:*)",
+      "Bash(firebase login:list)",
+      "Bash(firebase projects:list)",
+      "Bash(firebase projects:create typing-practice-app --display-name \"Typing Practice\")",
+      "Bash(firebase projects:create typing-practice-jrc --display-name \"Typing Practice\")",
+      "Bash(npm run:*)"
+    ]
+  }
+}
