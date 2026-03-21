@@ -14,6 +14,7 @@ import {
   limit,
   where,
   serverTimestamp,
+  writeBatch,
 } from 'firebase/firestore'
 
 const firebaseConfig = {
@@ -25,7 +26,6 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 }
 
-// Only initialize if config is provided
 let db = null
 try {
   if (firebaseConfig.apiKey) {
@@ -33,7 +33,7 @@ try {
     db = getFirestore(app)
   }
 } catch (e) {
-  console.warn('Firebase not configured, using local storage fallback')
+  console.warn('Firebase not configured:', e)
 }
 
 export {
@@ -51,4 +51,5 @@ export {
   limit,
   where,
   serverTimestamp,
+  writeBatch,
 }

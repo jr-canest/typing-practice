@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   getUsers, saveUser, deleteUser,
   getContentBlocks, saveContentBlock, deleteContentBlock,
@@ -7,9 +7,18 @@ import {
 import { AVATARS } from '../lib/avatars'
 
 function UserManager() {
-  const [users, setUsers] = useState(getUsers())
+  const [users, setUsers] = useState([])
+  const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(null) // null | 'new' | userId
   const [form, setForm] = useState({ name: '', pin: '', avatar: AVATARS[0] })
+
+  useEffect(() => {
+    getUsers().then(u => { setUsers(u); setLoading(false) })
+  }, [])
+
+  async function refreshUsers() {
+    setUsers(await getUsers())
+  }
 
   function startNew() {
     setForm({ name: '', pin: '', avatar: AVATARS[0] })
@@ -21,24 +30,27 @@ function UserManager() {
     setEditing(user.id)
   }
 
-  function handleSave() {
+  async function handleSave() {
     if (!form.name.trim()) return
+    const existingUser = editing !== 'new' ? users.find(u => u.id === editing) : null
     const user = {
       id: editing === 'new' ? `user_${Date.now()}` : editing,
       name: form.name.trim(),
       pin: form.pin,
       avatar: form.avatar,
-      createdAt: editing === 'new' ? Date.now() : (getUsers().find(u => u.id === editing)?.createdAt || Date.now()),
+      createdAt: editing === 'new' ? Date.now() : (existingUser?.createdAt || Date.now()),
     }
-    saveUser(user)
-    setUsers(getUsers())
+    await saveUser(user)
+    await refreshUsers()
     setEditing(null)
   }
 
-  function handleDelete(id) {
-    deleteUser(id)
-    setUsers(getUsers())
+  async function handleDelete(id) {
+    await deleteUser(id)
+    await refreshUsers()
   }
+
+  if (loading) return <p className="text-gray-400 text-sm text-center py-4">Loading...</p>
 
   return (
     <div>
@@ -99,9 +111,18 @@ function UserManager() {
 }
 
 function ContentManager() {
-  const [blocks, setBlocks] = useState(getContentBlocks())
+  const [blocks, setBlocks] = useState([])
+  const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(null)
   const [form, setForm] = useState({ title: '', category: '', text: '' })
+
+  useEffect(() => {
+    getContentBlocks().then(b => { setBlocks(b); setLoading(false) })
+  }, [])
+
+  async function refreshBlocks() {
+    setBlocks(await getContentBlocks())
+  }
 
   function startNew() {
     setForm({ title: '', category: '', text: '' })
@@ -113,25 +134,28 @@ function ContentManager() {
     setEditing(block.id)
   }
 
-  function handleSave() {
+  async function handleSave() {
     if (!form.title.trim() || !form.text.trim()) return
+    const existingBlock = editing !== 'new' ? blocks.find(b => b.id === editing) : null
     const block = {
       id: editing === 'new' ? `block_${Date.now()}` : editing,
       title: form.title.trim(),
       category: form.category.trim() || 'General',
       text: form.text.trim(),
       wordCount: form.text.trim().split(/\s+/).length,
-      createdAt: editing === 'new' ? Date.now() : (getContentBlocks().find(b => b.id === editing)?.createdAt || Date.now()),
+      createdAt: editing === 'new' ? Date.now() : (existingBlock?.createdAt || Date.now()),
     }
-    saveContentBlock(block)
-    setBlocks(getContentBlocks())
+    await saveContentBlock(block)
+    await refreshBlocks()
     setEditing(null)
   }
 
-  function handleDelete(id) {
-    deleteContentBlock(id)
-    setBlocks(getContentBlocks())
+  async function handleDelete(id) {
+    await deleteContentBlock(id)
+    await refreshBlocks()
   }
+
+  if (loading) return <p className="text-gray-400 text-sm text-center py-4">Loading...</p>
 
   return (
     <div>
@@ -190,9 +214,20 @@ function ContentManager() {
 }
 
 function StatsViewer() {
-  const users = getUsers()
+  const [users, setUsers] = useState([])
+  const [loading, setLoading] = useState(true)
   const [selectedUser, setSelectedUser] = useState(null)
-  const sessions = selectedUser ? getSessions(selectedUser) : []
+  const [sessions, setSessions] = useState([])
+
+  useEffect(() => {
+    getUsers().then(u => { setUsers(u); setLoading(false) })
+  }, [])
+
+  async function handleSelectUser(userId) {
+    setSelectedUser(userId)
+    const s = await getSessions(userId)
+    setSessions(s)
+  }
 
   const recentSessions = sessions.slice(-20).reverse()
   const avgWpm = sessions.length > 0
@@ -202,6 +237,8 @@ function StatsViewer() {
     ? Math.round(sessions.reduce((sum, s) => sum + (s.accuracy || 0), 0) / sessions.length)
     : 0
 
+  if (loading) return <p className="text-gray-400 text-sm text-center py-4">Loading...</p>
+
   return (
     <div>
       <h3 className="text-lg font-bold text-gray-700 mb-4">User Stats</h3>
@@ -209,7 +246,7 @@ function StatsViewer() {
         {users.map((u) => (
           <button
             key={u.id}
-            onClick={() => setSelectedUser(u.id)}
+            onClick={() => handleSelectUser(u.id)}
             className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${selectedUser === u.id ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
           >
             {u.avatar} {u.name}
@@ -254,14 +291,21 @@ function StatsViewer() {
 }
 
 function SettingsPanel() {
-  const [settings, setSettings] = useState(getSettings())
+  const [settings, setSettings] = useState({ adminPin: '1234', dailyGoalMinutes: 10, dailyGoalSessions: 3 })
+  const [loading, setLoading] = useState(true)
   const [saved, setSaved] = useState(false)
 
-  function handleSave() {
-    saveSettings(settings)
+  useEffect(() => {
+    getSettings().then(s => { setSettings(s); setLoading(false) })
+  }, [])
+
+  async function handleSave() {
+    await saveSettings(settings)
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
   }
+
+  if (loading) return <p className="text-gray-400 text-sm text-center py-4">Loading...</p>
 
   return (
     <div>

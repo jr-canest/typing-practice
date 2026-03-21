@@ -1,67 +1,61 @@
-// Local storage fallback when Firebase is not configured.
-// Mirrors the Firestore data model so swapping to Firebase later is seamless.
+// Firestore-backed storage for cross-device persistence.
+// All functions are async and return Promises.
 
-const PREFIX = 'typing_practice_'
-
-function read(key) {
-  try {
-    const raw = localStorage.getItem(PREFIX + key)
-    return raw ? JSON.parse(raw) : null
-  } catch {
-    return null
-  }
-}
-
-function write(key, value) {
-  localStorage.setItem(PREFIX + key, JSON.stringify(value))
-}
-
-function remove(key) {
-  localStorage.removeItem(PREFIX + key)
-}
+import {
+  db,
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  setDoc,
+  addDoc,
+  deleteDoc,
+  writeBatch,
+} from './firebase'
 
 // ── Users ──────────────────────────────────────────────
 
-export function getUsers() {
-  return read('users') || []
+export async function getUsers() {
+  const snap = await getDocs(collection(db, 'users'))
+  return snap.docs.map(d => d.data())
 }
 
-export function getUser(id) {
-  return getUsers().find((u) => u.id === id) || null
+export async function getUser(id) {
+  const snap = await getDoc(doc(db, 'users', id))
+  return snap.exists() ? snap.data() : null
 }
 
-export function saveUser(user) {
-  const users = getUsers()
-  const idx = users.findIndex((u) => u.id === user.id)
-  if (idx >= 0) users[idx] = user
-  else users.push(user)
-  write('users', users)
+export async function saveUser(user) {
+  await setDoc(doc(db, 'users', user.id), user)
   return user
 }
 
-export function deleteUser(id) {
-  write('users', getUsers().filter((u) => u.id !== id))
-  // Also clean up sessions and progress
-  remove(`sessions_${id}`)
-  remove(`progress_${id}`)
+export async function deleteUser(id) {
+  // Delete subcollections first
+  const sessionSnap = await getDocs(collection(db, 'users', id, 'sessions'))
+  const progressSnap = await getDocs(collection(db, 'users', id, 'progress'))
+  const batch = writeBatch(db)
+  sessionSnap.docs.forEach(d => batch.delete(d.ref))
+  progressSnap.docs.forEach(d => batch.delete(d.ref))
+  batch.delete(doc(db, 'users', id))
+  await batch.commit()
 }
 
 // ── Sessions ───────────────────────────────────────────
 
-export function getSessions(userId) {
-  return read(`sessions_${userId}`) || []
+export async function getSessions(userId) {
+  const snap = await getDocs(collection(db, 'users', userId, 'sessions'))
+  return snap.docs.map(d => d.data())
 }
 
-export function saveSession(userId, session) {
-  const sessions = getSessions(userId)
-  sessions.push(session)
-  write(`sessions_${userId}`, sessions)
+export async function saveSession(userId, session) {
+  await addDoc(collection(db, 'users', userId, 'sessions'), session)
   return session
 }
 
 // Get best WPM per content block for a user
-export function getBestWpm(userId) {
-  const sessions = getSessions(userId)
+export async function getBestWpm(userId) {
+  const sessions = await getSessions(userId)
   const best = {}
   sessions.forEach(s => {
     if (s.contentBlockId && s.wpm > 0) {
@@ -75,58 +69,61 @@ export function getBestWpm(userId) {
 
 // ── Progress ───────────────────────────────────────────
 
-export function getProgress(userId) {
-  return read(`progress_${userId}`) || {}
+export async function getProgress(userId) {
+  const snap = await getDocs(collection(db, 'users', userId, 'progress'))
+  const progress = {}
+  snap.docs.forEach(d => {
+    progress[d.id] = d.data()
+  })
+  return progress
 }
 
-export function saveProgress(userId, contentBlockId, lastWordIndex) {
-  const progress = getProgress(userId)
-  progress[contentBlockId] = { lastWordIndex, updatedAt: Date.now() }
-  write(`progress_${userId}`, progress)
+export async function saveProgress(userId, contentBlockId, lastWordIndex) {
+  await setDoc(doc(db, 'users', userId, 'progress', contentBlockId), {
+    lastWordIndex,
+    updatedAt: Date.now(),
+  })
 }
 
 // ── Content Blocks ─────────────────────────────────────
 
-export function getContentBlocks() {
-  const blocks = read('contentBlocks') || []
-  // Remove legacy Bible content from cached data
-  const filtered = blocks.filter((b) => b.category !== 'Bible')
-  if (filtered.length !== blocks.length) write('contentBlocks', filtered)
-  return filtered
+export async function getContentBlocks() {
+  const snap = await getDocs(collection(db, 'contentBlocks'))
+  return snap.docs.map(d => d.data()).filter(b => b.category !== 'Bible')
 }
 
-export function getContentBlock(id) {
-  return getContentBlocks().find((b) => b.id === id) || null
+export async function getContentBlock(id) {
+  const snap = await getDoc(doc(db, 'contentBlocks', id))
+  return snap.exists() ? snap.data() : null
 }
 
-export function saveContentBlock(block) {
-  const blocks = getContentBlocks()
-  const idx = blocks.findIndex((b) => b.id === block.id)
-  if (idx >= 0) blocks[idx] = block
-  else blocks.push(block)
-  write('contentBlocks', blocks)
+export async function saveContentBlock(block) {
+  await setDoc(doc(db, 'contentBlocks', block.id), block)
   return block
 }
 
-export function deleteContentBlock(id) {
-  write('contentBlocks', getContentBlocks().filter((b) => b.id !== id))
+export async function deleteContentBlock(id) {
+  await deleteDoc(doc(db, 'contentBlocks', id))
 }
 
 // ── Settings ───────────────────────────────────────────
 
-export function getSettings() {
-  return read('settings') || { adminPin: '1234', dailyGoalMinutes: 10, dailyGoalSessions: 3 }
+export async function getSettings() {
+  const snap = await getDoc(doc(db, 'config', 'settings'))
+  return snap.exists()
+    ? snap.data()
+    : { adminPin: '1234', dailyGoalMinutes: 10, dailyGoalSessions: 3 }
 }
 
-export function saveSettings(settings) {
-  write('settings', settings)
+export async function saveSettings(settings) {
+  await setDoc(doc(db, 'config', 'settings'), settings)
 }
 
 // ── Starter Content ────────────────────────────────────
 
-export function seedStarterContent() {
-  const existing = getContentBlocks()
-  if (existing.length > 0) return
+export async function seedStarterContent() {
+  const snap = await getDocs(collection(db, 'contentBlocks'))
+  if (!snap.empty) return // Already has content
 
   const starterBlocks = [
     {
@@ -171,21 +168,19 @@ export function seedStarterContent() {
     },
   ]
 
-  starterBlocks.forEach((b) => {
+  const batch = writeBatch(db)
+  starterBlocks.forEach(b => {
     b.wordCount = b.text.split(/\s+/).length
+    batch.set(doc(db, 'contentBlocks', b.id), b)
   })
-
-  write('contentBlocks', starterBlocks)
+  await batch.commit()
 }
 
 // ── Hobbit Story Content ──────────────────────────────
-// Seeds Chapter 1 of The Hobbit broken into 8 manageable sections.
-// Runs separately from seedStarterContent so it works for existing users too.
 
-export function seedHobbitContent() {
-  const existing = getContentBlocks()
-  // Check if already seeded
-  if (existing.some(b => b.id === 'hobbit-1')) return
+export async function seedHobbitContent() {
+  const snap = await getDoc(doc(db, 'contentBlocks', 'hobbit-1'))
+  if (snap.exists()) return // Already seeded
 
   const hobbitBlocks = [
     {
@@ -254,11 +249,10 @@ export function seedHobbitContent() {
     },
   ]
 
-  hobbitBlocks.forEach((b) => {
+  const batch = writeBatch(db)
+  hobbitBlocks.forEach(b => {
     b.wordCount = b.text.split(/\s+/).length
+    batch.set(doc(db, 'contentBlocks', b.id), b)
   })
-
-  // Append to existing content blocks
-  const blocks = getContentBlocks()
-  write('contentBlocks', [...blocks, ...hobbitBlocks])
+  await batch.commit()
 }

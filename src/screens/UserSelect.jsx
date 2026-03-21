@@ -1,11 +1,16 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { getUsers, getSettings } from '../lib/storage'
 import { AVATARS } from '../lib/avatars'
 import PinEntry from '../components/PinEntry'
 
 export default function UserSelect({ onSelectUser, onAdmin }) {
   const [showPin, setShowPin] = useState(null) // userId or 'admin'
-  const users = getUsers()
+  const [users, setUsers] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    getUsers().then(u => { setUsers(u); setLoading(false) })
+  }, [])
 
   function handleUserClick(user) {
     if (user.pin) {
@@ -15,9 +20,9 @@ export default function UserSelect({ onSelectUser, onAdmin }) {
     }
   }
 
-  function handlePinSubmit(pin) {
+  async function handlePinSubmit(pin) {
     if (showPin === 'admin') {
-      const settings = getSettings()
+      const settings = await getSettings()
       if (pin === settings.adminPin) {
         onAdmin()
         setShowPin(null)
@@ -32,6 +37,14 @@ export default function UserSelect({ onSelectUser, onAdmin }) {
       return true
     }
     return false
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#e8e9ed' }}>
+        <div className="text-gray-400 font-medium">Loading...</div>
+      </div>
+    )
   }
 
   return (

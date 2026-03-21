@@ -5,13 +5,13 @@ export default function PinEntry({ title, onSubmit, onCancel }) {
   const [error, setError] = useState(false)
   const pinRef = useRef('')
 
-  function handleDigit(d) {
+  async function handleDigit(d) {
     if (pinRef.current.length >= 4) return
     const next = pinRef.current + d
     pinRef.current = next
     setError(false)
     if (next.length === 4) {
-      const ok = onSubmit(next)
+      const ok = await onSubmit(next)
       if (ok === false) {
         setError(true)
         pinRef.current = ''

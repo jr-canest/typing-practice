@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { getContentBlocks, getProgress, getBestWpm } from '../lib/storage'
 
 const CATEGORY_EMOJI = {
@@ -9,14 +9,30 @@ const CATEGORY_EMOJI = {
 }
 
 export default function ContentSelect({ user, onStart, onBack }) {
-  const blocks = getContentBlocks()
-  const progress = getProgress(user.id)
-  const bestWpms = getBestWpm(user.id)
+  const [blocks, setBlocks] = useState([])
+  const [progress, setProgress] = useState({})
+  const [bestWpms, setBestWpms] = useState({})
+  const [loading, setLoading] = useState(true)
   const [selectedBlock, setSelectedBlock] = useState(null)
   const [wordCount, setWordCount] = useState(50)
   const [mode, setMode] = useState('words')
   const [timeMinutes, setTimeMinutes] = useState(5)
   const [textMode, setTextMode] = useState('basic')
+
+  useEffect(() => {
+    async function load() {
+      const [b, p, w] = await Promise.all([
+        getContentBlocks(),
+        getProgress(user.id),
+        getBestWpm(user.id),
+      ])
+      setBlocks(b)
+      setProgress(p)
+      setBestWpms(w)
+      setLoading(false)
+    }
+    load()
+  }, [user.id])
 
   const categories = {}
   blocks.forEach((b) => {
@@ -54,6 +70,14 @@ export default function ContentSelect({ user, onStart, onBack }) {
 
   const pill = (active) =>
     `px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${active ? 'bg-blue-500 text-white shadow-sm' : 'bg-white/60 text-gray-500 hover:bg-white/80'}`
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center" style={{ height: '100dvh', backgroundColor: '#e8e9ed' }}>
+        <div className="text-gray-400 font-medium">Loading...</div>
+      </div>
+    )
+  }
 
   return (
     <div className="flex flex-col" style={{ height: '100dvh', backgroundColor: '#e8e9ed' }}>

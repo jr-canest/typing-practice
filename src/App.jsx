@@ -11,11 +11,16 @@ export default function App() {
   const [currentUser, setCurrentUser] = useState(null)
   const [sessionConfig, setSessionConfig] = useState(null)
   const [sessionResults, setSessionResults] = useState(null)
+  const [ready, setReady] = useState(false)
 
   // Seed starter content on first load
   useEffect(() => {
-    seedStarterContent()
-    seedHobbitContent()
+    async function init() {
+      await seedStarterContent()
+      await seedHobbitContent()
+      setReady(true)
+    }
+    init()
   }, [])
 
   function handleSelectUser(user) {
@@ -23,19 +28,19 @@ export default function App() {
     setScreen('contentSelect')
   }
 
-  function handleStartSession(config) {
+  async function handleStartSession(config) {
     setSessionConfig(config)
     setScreen('typing')
   }
 
-  function handleFinishSession(results) {
+  async function handleFinishSession(results) {
     // Check for record before saving
-    const bestWpms = getBestWpm(currentUser.id)
+    const bestWpms = await getBestWpm(currentUser.id)
     const previousBest = bestWpms[results.contentBlockId] || 0
     const isNewRecord = results.wpm > previousBest && results.wpm > 0
 
     // Save session to storage
-    saveSession(currentUser.id, {
+    await saveSession(currentUser.id, {
       ...results,
       startedAt: Date.now() - results.elapsed * 1000,
       completedAt: Date.now(),
@@ -44,9 +49,9 @@ export default function App() {
     setScreen('results')
   }
 
-  function handleRetry() {
+  async function handleRetry() {
     // Restart same content from same position
-    const block = getContentBlock(sessionConfig.block.id)
+    const block = await getContentBlock(sessionConfig.block.id)
     if (block) {
       setSessionConfig({
         ...sessionConfig,
@@ -57,11 +62,11 @@ export default function App() {
     setScreen('typing')
   }
 
-  function handleContinue() {
+  async function handleContinue() {
     // Continue from where we left off
-    const block = getContentBlock(sessionConfig.block.id)
+    const block = await getContentBlock(sessionConfig.block.id)
     if (block) {
-      const progress = getProgress(currentUser.id)
+      const progress = await getProgress(currentUser.id)
       const lastWord = progress[block.id]?.lastWordIndex || 0
       setSessionConfig({
         ...sessionConfig,
@@ -83,6 +88,17 @@ export default function App() {
     setSessionConfig(null)
     setSessionResults(null)
     setScreen('contentSelect')
+  }
+
+  if (!ready) {
+    return (
+      <div className="flex items-center justify-center" style={{ backgroundColor: '#e8e9ed', height: '100dvh' }}>
+        <div className="text-center">
+          <div className="text-4xl mb-3">⌨️</div>
+          <div className="text-gray-400 font-medium">Loading...</div>
+        </div>
+      </div>
+    )
   }
 
   switch (screen) {

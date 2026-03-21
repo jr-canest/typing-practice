@@ -1,12 +1,13 @@
 # Typing Practice App
 
-A typing practice app for homeschool kids. Built with React, uses localStorage for persistence. Deployed to Firebase Hosting.
+A typing practice app for homeschool kids. Built with React, uses Firestore for cross-device persistence. Deployed to Firebase Hosting via GitHub Actions.
 
 ## Stack
 
 - React (Vite)
 - Tailwind CSS v4
-- localStorage for persistence (user data, session history, content library)
+- Cloud Firestore for persistence (user data, session history, content library — syncs across devices)
+- Firebase Hosting (auto-deployed from GitHub Actions on push to main)
 - Web Audio API for sounds (keystroke, error, countdown beeps, celebration, record fanfare)
 - No external typing libraries — built from scratch
 
@@ -116,15 +117,17 @@ A typing practice app for homeschool kids. Built with React, uses localStorage f
 - **New Record fanfare**: Melody + harmony layer (thirds above, delayed 80ms)
 - All sounds use `AudioContext` with autoplay policy resume handling
 
-## Data Model (localStorage)
+## Data Model (Firestore)
 
 ```
-users              → [{ id, name, pin, avatar, createdAt }]
-sessions_{userId}  → [{ contentBlockId, startedAt, completedAt, wordsCompleted, totalWords, wpm, accuracy, keyErrors }]
-progress_{userId}  → { [contentBlockId]: { lastWordIndex, updatedAt } }
-contentBlocks      → [{ id, title, category, text, wordCount, createdAt }]
-config             → { adminPin }
+users/{userId}                          → { id, name, pin, avatar, createdAt }
+users/{userId}/sessions/{auto-id}       → { contentBlockId, startedAt, completedAt, wordsCompleted, totalWords, wpm, accuracy, keyErrors }
+users/{userId}/progress/{contentBlockId} → { lastWordIndex, updatedAt }
+contentBlocks/{blockId}                 → { id, title, category, text, wordCount, createdAt }
+config/settings                         → { adminPin, dailyGoalMinutes, dailyGoalSessions }
 ```
+
+All storage functions in `storage.js` are `async` and return Promises. Components load data via `useEffect` + `useState` with loading states.
 
 Helper: `getBestWpm(userId)` returns `{ [contentBlockId]: bestWpmNumber }` from session history.
 
@@ -170,6 +173,7 @@ Use standard touch typing assignments:
 
 ## Key Implementation Details
 
+- Focus management: `onBlur` listener reclaims focus during typing phase; `onMouseDown` refocuses via `requestAnimationFrame`; focus grabbed on mount and phase change
 - Keystrokes captured via `onKeyDown` on a focused `div[tabIndex=0]` — no input elements
 - WPM uses a ref (`completedWordsRef`) to avoid stale closure in `setInterval`
 - Space symbol (⎵) always rendered (invisible) on every word to prevent layout shift — only becomes visible/pulsing on the current word when space is expected
@@ -197,16 +201,19 @@ src/
     AdminScreen.jsx    — Users/Content/Stats/Settings tabs
   lib/
     keyboard.js        — Key layout, finger mapping, colors
-    storage.js         — localStorage CRUD (users, sessions, progress, content, bestWpm)
+    firebase.js        — Firebase/Firestore initialization, SDK exports
+    storage.js         — Firestore async CRUD (users, sessions, progress, content, bestWpm)
     sounds.js          — Web Audio API (keystroke, error, beep, celebration, fanfare)
 public/
   sounds/
     keystroke.mp3      — Key click sound
+.env                   — Firebase config (VITE_FIREBASE_* env vars)
+firestore.rules        — Firestore security rules
+.github/workflows/
+  firebase-hosting.yml — CI/CD: build + deploy to Firebase on push to main
 ```
 
 ## Out of Scope (for now)
-
-- Firestore integration (currently localStorage only, hosted on Firebase)
 - Multiplayer / race mode
 - Gamification (points, badges, unlocks)
 - Typing games (falling words, etc.)
