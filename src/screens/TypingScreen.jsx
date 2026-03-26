@@ -4,7 +4,7 @@ import HandGuide from '../components/HandGuide'
 import FunDisplay from '../components/FunDisplay'
 import { KEY_TO_FINGER } from '../lib/keyboard'
 import { saveProgress } from '../lib/storage'
-import { initSounds, playKeystroke, playError, playCountdownBeep, playGroupPop } from '../lib/sounds'
+import { initSounds, playKeystroke, playError, playCountdownBeep, playGroupPop, playStreakChime } from '../lib/sounds'
 
 // Strip punctuation and lowercase for basic mode
 function sanitizeBasic(text) {
@@ -50,6 +50,7 @@ export default function TypingScreen({ user, session, onFinish, onQuit }) {
 
   // Streak / combo tracking — words (perfect words in a row)
   const [wordStreak, setWordStreak] = useState(0)
+  const [bestWordStreak, setBestWordStreak] = useState(0)
   const [wordErrorInCurrent, setWordErrorInCurrent] = useState(false)
 
   const LETTER_MILESTONES = [
@@ -65,7 +66,16 @@ export default function TypingScreen({ user, session, onFinish, onQuit }) {
     { at: 5,  emoji: '\u{1F31F}', label: 'On fire!' },
     { at: 10, emoji: '\u{1F4AF}', label: 'Flawless!' },
     { at: 20, emoji: '\u{1F3C6}', label: 'Unstoppable!' },
+    { at: 50, emoji: '\u{1F525}', label: 'On another level!' },
+    { at: 100, emoji: '\u{1F451}', label: 'LEGENDARY!' },
+    { at: 150, emoji: '\u{2B50}', label: 'GODLIKE!' },
   ]
+
+  // Streak sound tiers: key streaks 25/50/100, word streaks 10/25/50/100/150
+  const STREAK_SOUNDS = {
+    letter: { 25: 1, 50: 2, 100: 3 },
+    word: { 10: 1, 25: 1, 50: 2, 100: 3, 150: 3 },
+  }
 
   function triggerCombo(newStreak, type) {
     const milestones = type === 'word' ? WORD_MILESTONES : LETTER_MILESTONES
@@ -75,6 +85,9 @@ export default function TypingScreen({ user, session, onFinish, onQuit }) {
       clearTimeout(comboTimeoutRef.current)
       comboTimeoutRef.current = setTimeout(() => setComboPopup(null), 1500)
     }
+    // Play streak chime at specific thresholds
+    const tier = STREAK_SOUNDS[type]?.[newStreak]
+    if (tier) playStreakChime(tier)
   }
 
   const containerRef = useRef(null)
@@ -189,6 +202,10 @@ export default function TypingScreen({ user, session, onFinish, onQuit }) {
       totalWords: words.length,
       keyErrors: { ...keyErrors },
       contentBlockId: block.id,
+      bestKeyStreak: bestStreak,
+      bestWordStreak,
+      totalKeystrokes,
+      correctKeystrokes,
     })
   }, [startTime, completedWords, totalKeystrokes, correctKeystrokes, keyErrors, wordIndex, words.length])
 
@@ -238,6 +255,7 @@ export default function TypingScreen({ user, session, onFinish, onQuit }) {
         if (!wordErrorInCurrent) {
           setWordStreak(ws => {
             const nws = ws + 1
+            setBestWordStreak(b => Math.max(b, nws))
             triggerCombo(nws, 'word')
             return nws
           })
@@ -285,7 +303,8 @@ export default function TypingScreen({ user, session, onFinish, onQuit }) {
       playKeystroke()
       setHasError(false)
       setCorrectKeystrokes((c) => c + 1)
-      setCharIndex((i) => i + 1)
+      const nextCharIdx = charIndex + 1
+      setCharIndex(nextCharIdx)
       setStreak(s => {
         const ns = s + 1
         setBestStreak(b => Math.max(b, ns))
@@ -296,6 +315,13 @@ export default function TypingScreen({ user, session, onFinish, onQuit }) {
         const stats = prev[expectedLower] || { correct: 0, errors: 0 }
         return { ...prev, [expectedLower]: { correct: stats.correct + 1, errors: stats.errors } }
       })
+      // Auto-finish if last character of last word — no space needed
+      if (nextCharIdx >= currentWord.length && wordIndex >= words.length - 1) {
+        setCompletedWords((c) => c + 1)
+        setWordIndex(wordIndex + 1)
+        setTimeout(finishSession, 100)
+        return
+      }
     } else {
       // Wrong — reset both streaks
       playError()
@@ -368,6 +394,18 @@ export default function TypingScreen({ user, session, onFinish, onQuit }) {
       className="flex flex-col outline-none select-none relative overflow-hidden"
       style={{ cursor: 'default', backgroundColor: '#e8e9ed', height: '100dvh' }}
     >
+      {/* Session progress bar */}
+      <div className="relative w-full" style={{ height: 3 }}>
+        <div className="absolute inset-0 bg-gray-200/60" />
+        <div
+          className="absolute left-0 top-0 bottom-0 bg-blue-400/50"
+          style={{ width: `${timeLimit ? Math.min((elapsed / timeLimit) * 100, 100) : Math.min((completedWords / words.length) * 100, 100)}%`, transition: 'width 0.3s' }}
+        />
+        <div className="absolute right-2 -bottom-3 text-[9px] text-gray-400 tabular-nums">
+          {timeLimit ? Math.min(Math.round((elapsed / timeLimit) * 100), 100) : Math.min(Math.round((completedWords / words.length) * 100), 100)}%
+        </div>
+      </div>
+
       {/* Top bar — metrics */}
       <div className="flex items-center justify-between px-6 py-4">
         <div className="flex gap-2">

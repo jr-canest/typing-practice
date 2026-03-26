@@ -140,6 +140,50 @@ export function playNewRecord() {
   })
 }
 
+// Streak milestone chime — escalating tiers for key/word streaks
+export function playStreakChime(tier = 1) {
+  const ctx = getContext()
+  if (ctx.state === 'suspended') ctx.resume()
+
+  if (tier === 1) {
+    // Single gentle chime
+    const osc = ctx.createOscillator()
+    osc.type = 'sine'
+    osc.frequency.setValueAtTime(700, ctx.currentTime)
+    const gain = ctx.createGain()
+    gain.gain.setValueAtTime(0.12, ctx.currentTime)
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15)
+    osc.connect(gain); gain.connect(ctx.destination)
+    osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.15)
+  } else if (tier === 2) {
+    // Two-note chime
+    ;[700, 900].forEach((freq, i) => {
+      const t = ctx.currentTime + i * 0.08
+      const osc = ctx.createOscillator()
+      osc.type = 'sine'
+      osc.frequency.setValueAtTime(freq, t)
+      const gain = ctx.createGain()
+      gain.gain.setValueAtTime(0.14, t)
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.18)
+      osc.connect(gain); gain.connect(ctx.destination)
+      osc.start(t); osc.stop(t + 0.18)
+    })
+  } else {
+    // Three-note ascending
+    ;[700, 900, 1100].forEach((freq, i) => {
+      const t = ctx.currentTime + i * 0.07
+      const osc = ctx.createOscillator()
+      osc.type = 'sine'
+      osc.frequency.setValueAtTime(freq, t)
+      const gain = ctx.createGain()
+      gain.gain.setValueAtTime(0.16, t)
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.22)
+      osc.connect(gain); gain.connect(ctx.destination)
+      osc.start(t); osc.stop(t + 0.22)
+    })
+  }
+}
+
 // Group completion pop — quick bright chirp for fun modes
 export function playGroupPop() {
   const ctx = getContext()

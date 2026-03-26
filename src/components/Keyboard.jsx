@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { KEYBOARD_ROWS, KEY_TO_FINGER, FINGER_COLORS, SHIFTED_KEY_MAP } from '../lib/keyboard'
+import { KEYBOARD_ROWS, KEY_TO_FINGER, FINGER_COLORS, SHIFTED_KEY_MAP, getShiftKey } from '../lib/keyboard'
 
 const KEY_SIZE = 34
 const GAP = 2
@@ -10,6 +10,7 @@ export default function Keyboard({ targetKey, pressedKey, activeKeys }) {
   const targetLower = targetKey?.toLowerCase()
   const baseKey = SHIFTED_KEY_MAP[targetKey] || targetLower
   const needsShift = targetKey !== targetLower || !!SHIFTED_KEY_MAP[targetKey]
+  const correctShift = needsShift ? getShiftKey(baseKey || targetKey) : null
 
   useEffect(() => {
     if (pressedKey) {
@@ -25,9 +26,9 @@ export default function Keyboard({ targetKey, pressedKey, activeKeys }) {
         <div key={ri} className="flex gap-[2px]">
           {row.map((k, ki) => {
             const kLower = k.key.toLowerCase()
-            const kFinger = k.noFinger ? null : KEY_TO_FINGER[k.key]
+            const kFinger = KEY_TO_FINGER[k.key] || (k.noFinger ? null : KEY_TO_FINGER[k.key])
             const isTarget = baseKey === kLower || (targetKey === ' ' && k.key === ' ')
-            const isShiftTarget = needsShift && (k.key === 'ShiftLeft' || k.key === 'ShiftRight')
+            const isShiftTarget = needsShift && k.key === correctShift
             const isHighlighted = isTarget || isShiftTarget
             const isAnimating = animatingKey === kLower
             const fingerColor = kFinger ? FINGER_COLORS[kFinger] : 'bg-gray-200'

@@ -107,12 +107,15 @@ KB drill sections use playful typing modes instead of the paper card. The mode c
     - Color progression: gray (0-9) → yellow (10+) → amber (25+) → orange (50+) → red (100+)
     - Fire emoji at 10+ streak
     - Milestones at 10/25/50/100/200 with combo popup
+  - Audio chimes at 25 (tier 1), 50 (tier 2), 100 (tier 3)
   - **Word streak**: consecutive perfect words (no errors), resets on any error
     - Color progression: gray (0-2) → cyan (3+) → sky (5+) → blue (10+) → purple (20+)
     - Sparkle emoji at 3+ streak
-    - Milestones at 3/5/10/20 with combo popup
+    - Milestones at 3/5/10/20/50/100/150 with combo popup
+    - Audio chimes at 10 (tier 1), 25 (tier 1), 50 (tier 2), 100 (tier 3), 150 (tier 3)
   - Warm gradient background when either streak is hot (keys ≥10 or words ≥3)
   - Combo milestone popups appear below the streak container (bounce animation)
+  - Best key/word streaks passed to results screen
 
 #### Controls
 
@@ -123,7 +126,7 @@ KB drill sections use playful typing modes instead of the paper card. The mode c
 
 1. User selects a content block from the Choose Practice screen
    - Always shows single "Start Practice" button
-   - If block has progress: modal asks "Continue (word N)" or "Start from beginning"
+   - If block has progress: modal asks "Continue (X%)" or "Start from beginning" (no emojis)
    - Story blocks auto-disable settings bar (full text mode, all words)
 2. Compact settings bar at top: Words/Time toggle, amount (20/50/100 or 2m/5m/10m), Basic/Full text mode
 3. "Ready → Set → GO!" countdown (490ms per step) with beep sounds (higher tone on GO!)
@@ -134,11 +137,13 @@ KB drill sections use playful typing modes instead of the paper card. The mode c
 
 - Celebratory entrance: confetti particles + ascending chime arpeggio
 - Emoji + message based on accuracy (Trophy 98%+, Star 90%+, Muscle 80%+, etc.)
-- Stat cards with staggered pop-in animation: WPM, Accuracy, Time, Words
-- **New Record banner**: golden gradient with bounce animation + fanfare sound when beating previous best WPM on that content block
+- 6-column stat cards with staggered pop-in: WPM, Accuracy, Time, Words, Key Streak, Word Streak
+- **New Record banner**: compact single-line golden gradient + fanfare sound
 - **Problem keys breakdown**: keys with <100% accuracy, color-coded by severity
-- **Accuracy Heat Map**: mini keyboard with keys shaded green→red by accuracy
-- Actions: Try Again, Home (returns to content select, keeps user logged in)
+- **Accuracy Heat Map**: mini keyboard (letter keys only, no modifiers) shaded green→red by accuracy
+- **Session progress bar**: thin bar at top of typing screen showing % through content
+- Actions: Try Again, Next (if available), Back to Lessons
+- Auto-finish: session completes when last character of last word is typed (no trailing space needed)
 - Scrollable on short viewports (`overflow-y-auto`, `100dvh`)
 
 ### Sound System (`/src/lib/sounds.js`)
@@ -149,6 +154,7 @@ KB drill sections use playful typing modes instead of the paper card. The mode c
 - **Celebration**: Ascending arpeggio C5→E5→G5→C6, 120ms spacing
 - **New Record fanfare**: Melody + harmony layer (thirds above, delayed 80ms)
 - **Group pop**: Quick rising chirp (600→900Hz, 120ms) — plays on word completion in fun display modes
+- **Streak chime**: 3 tiers — tier 1 single 700Hz chime, tier 2 two-note 700→900Hz, tier 3 three-note 700→900→1100Hz
 - All sounds use `AudioContext` with autoplay policy resume handling
 
 ## Data Model (Firestore)
@@ -228,6 +234,9 @@ Use standard touch typing assignments:
 - Hands: `position: fixed; bottom: 0` with SVG `viewBox` tightened to actual path bounds (measured via `getBBox()`) for flush bottom edge
 - PIN entry: numeric keypad UI, no physical keyboard required
 - All screens use `100dvh` height and consistent `#e8e9ed` background
+- Opposite-hand shift rule: `getShiftKey()` in keyboard.js determines correct shift key based on which hand types the character. Keyboard.jsx highlights only the correct shift.
+- Modifier keys (Tab, Caps, Backspace, Enter, Shifts) have finger color assignments (pinkies)
+- KB lesson word counts: 1.01-1.04 ~15w, 1.05-1.06 ~25w, 1.07+ 30-70w. Re-seeded via `_version` flag.
 
 ## File Structure
 

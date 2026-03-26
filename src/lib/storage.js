@@ -288,8 +288,9 @@ export async function seedCanucksContent() {
 // ── Keyboard Basics Content ───────────────────────────
 
 export async function seedKeyboardBasicsContent() {
+  const KB_VERSION = 2 // bump to re-seed with trimmed lesson texts
   const snap = await getDoc(doc(db, 'contentBlocks', 'kb-1.01'))
-  if (snap.exists()) return
+  if (snap.exists() && snap.data()._version === KB_VERSION) return
 
   const HR = ['a','s','d','f','g','h','j','k','l',';']
   const TR = ['q','w','e','r','t','y','u','i','o','p']
@@ -297,12 +298,12 @@ export async function seedKeyboardBasicsContent() {
 
   const kbBlocks = [
     // Phase 1: Home Row
-    { id: 'kb-1.01', title: 'Home Position: J and F', phase: 1, phaseTitle: 'Home Row', order: 1, keysIntroduced: ['f','j'], allActiveKeys: ['f','j',' '], unlockRequirement: null, passAccuracy: 90, masteryWpm: 10, text: 'jjj fff jjj fff jf jf jf fj fj fj jjf fjj jff ffj jf jf fj fj jfj fjf jfj fjf jf fj jf fj fj jf jfj fff jjj fjf jfj ffjj jjff fjfj jfjf fj jf fj jf fjf' },
-    { id: 'kb-1.02', title: 'Right Hand: J and K', phase: 1, phaseTitle: 'Home Row', order: 2, keysIntroduced: ['k'], allActiveKeys: ['f','j','k',' '], unlockRequirement: 'kb-1.01', passAccuracy: 90, masteryWpm: 10, text: 'jjj kkk jjj kkk jk jk jk kj kj kj jkj kjk jkj kjk jjk kkj jkk kjj jk kj jk kj kjk jkj kjk jkj jk kj fjk fkj jfk kfj fj fk jf kf fjk fkj jfk kfj fk jk' },
-    { id: 'kb-1.03', title: 'Left Hand: F and D', phase: 1, phaseTitle: 'Home Row', order: 3, keysIntroduced: ['d'], allActiveKeys: ['f','j','k','d',' '], unlockRequirement: 'kb-1.02', passAccuracy: 90, masteryWpm: 10, text: 'fff ddd fff ddd fd fd fd df df df fdf dfd fdf dfd ffd ddf fdd dff fd df fd df dfd fdf dfd fdf fd df fdf dfd fjd fkd djf dkf fd jk dk fj fd kj fdk djk fjd dkf jdk' },
-    { id: 'kb-1.04', title: 'Outer Right: L and ;', phase: 1, phaseTitle: 'Home Row', order: 4, keysIntroduced: ['l',';'], allActiveKeys: ['f','j','k','d','l',';',' '], unlockRequirement: 'kb-1.03', passAccuracy: 90, masteryWpm: 10, text: 'lll ;;; lll ;;; l; l; ;l ;l l;l ;l; l;l ;l; ll; ;;l jkl; ;lkj jl kl j; k; lj lk ;j ;k jkl; ;lkj l; ;l fjl fkl djl dkl fl dl jl kl lf ld lj lk fl; dk; jl;' },
-    { id: 'kb-1.05', title: 'Outer Left: S and A', phase: 1, phaseTitle: 'Home Row', order: 5, keysIntroduced: ['s','a'], allActiveKeys: ['a','s','d','f','j','k','l',';',' '], unlockRequirement: 'kb-1.04', passAccuracy: 90, masteryWpm: 10, text: 'sss aaa sss aaa sa sa as as sas asa sas asa ssa aas fds asd fda saf ads sad fas daf asdf fdsa asdf fdsa a dad a fad a lad a lass a lash sad dad fad' },
-    { id: 'kb-1.06', title: 'Home Row Complete: G and H', phase: 1, phaseTitle: 'Home Row', order: 6, keysIntroduced: ['g','h'], allActiveKeys: [...HR,' '], unlockRequirement: 'kb-1.05', passAccuracy: 90, masteryWpm: 10, text: 'ggg hhh ggg hhh gh gh hg hg ghg hgh ghg hgh ggh hhg fgf jhj fgf jhj fg jh gf hj fgh jhg fgj jhf ghj hgf had has ash dash gash lash hash shag glad flag glass' },
+    { id: 'kb-1.01', title: 'Home Position: J and F', phase: 1, phaseTitle: 'Home Row', order: 1, keysIntroduced: ['f','j'], allActiveKeys: ['f','j',' '], unlockRequirement: null, passAccuracy: 90, masteryWpm: 10, text: 'jjj fff jjj fff jf jf jf fj fj fj jjf fjj jff ffj jfj fjf' },
+    { id: 'kb-1.02', title: 'Right Hand: J and K', phase: 1, phaseTitle: 'Home Row', order: 2, keysIntroduced: ['k'], allActiveKeys: ['f','j','k',' '], unlockRequirement: 'kb-1.01', passAccuracy: 90, masteryWpm: 10, text: 'jjj kkk jjj kkk jk jk kj kj jkj kjk jjk kkj fjk fkj jfk kfj' },
+    { id: 'kb-1.03', title: 'Left Hand: F and D', phase: 1, phaseTitle: 'Home Row', order: 3, keysIntroduced: ['d'], allActiveKeys: ['f','j','k','d',' '], unlockRequirement: 'kb-1.02', passAccuracy: 90, masteryWpm: 10, text: 'fff ddd fff ddd fd fd df df fdf dfd ffd ddf fjd fkd djf dkf' },
+    { id: 'kb-1.04', title: 'Outer Right: L and ;', phase: 1, phaseTitle: 'Home Row', order: 4, keysIntroduced: ['l',';'], allActiveKeys: ['f','j','k','d','l',';',' '], unlockRequirement: 'kb-1.03', passAccuracy: 90, masteryWpm: 10, text: 'lll ;;; lll ;;; l; l; ;l ;l l;l ;l; jkl; ;lkj jl kl j; k; fl dl' },
+    { id: 'kb-1.05', title: 'Outer Left: S and A', phase: 1, phaseTitle: 'Home Row', order: 5, keysIntroduced: ['s','a'], allActiveKeys: ['a','s','d','f','j','k','l',';',' '], unlockRequirement: 'kb-1.04', passAccuracy: 90, masteryWpm: 10, text: 'sss aaa sss aaa sa sa as as sas asa fds asd ads sad asdf fdsa a dad a fad a lad a lass a lash sad dad fad' },
+    { id: 'kb-1.06', title: 'Home Row Complete: G and H', phase: 1, phaseTitle: 'Home Row', order: 6, keysIntroduced: ['g','h'], allActiveKeys: [...HR,' '], unlockRequirement: 'kb-1.05', passAccuracy: 90, masteryWpm: 10, text: 'ggg hhh ggg hhh gh gh hg hg ghg hgh fgf jhj fg jh gf hj fgh jhg had has ash dash gash lash hash shag glad flag glass' },
     { id: 'kb-1.07', title: 'Home Row Words', phase: 1, phaseTitle: 'Home Row', order: 7, keysIntroduced: [], allActiveKeys: [...HR,' '], unlockRequirement: 'kb-1.06', passAccuracy: 90, masteryWpm: 12, text: 'a ad ah as add ads all ash ask dad fad gag gal gas had has jag lag lad sad sag add all ask ash dad fad lash gash dash hash glad flag fall hall flask shall salad glass slash flash flags dads lads gals flash a glad lad had a salad a sad lass shall dash a flag all lads had flash flags dad shall add a glass half' },
 
     // Phase 2: Top Row
@@ -335,6 +336,7 @@ export async function seedKeyboardBasicsContent() {
     b.category = 'Keyboard Basics'
     b.wordCount = b.text.split(/\s+/).length
     b.createdAt = Date.now()
+    b._version = KB_VERSION
     batch.set(doc(db, 'contentBlocks', b.id), b)
   })
   await batch.commit()

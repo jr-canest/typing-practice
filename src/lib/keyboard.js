@@ -54,6 +54,9 @@ export const KEY_TO_FINGER = {
   "'": 'right-pinky', '"': 'right-pinky', '\\': 'right-pinky', '|': 'right-pinky',
   '<': 'right-middle', '>': 'right-ring',
   ' ': 'thumb',
+  // Modifier keys
+  'ShiftLeft': 'left-pinky', 'Tab': 'left-pinky', 'CapsLock': 'left-pinky',
+  'ShiftRight': 'right-pinky', 'Backspace': 'right-pinky', 'Enter': 'right-pinky',
 }
 
 export const KEYBOARD_ROWS = [
@@ -71,10 +74,10 @@ export const KEYBOARD_ROWS = [
     { key: '0', display: '0', w: 1 },
     { key: '-', display: '-', w: 1 },
     { key: '=', display: '=', w: 1 },
-    { key: 'Backspace', display: '⌫', w: 1.5, noFinger: true },
+    { key: 'Backspace', display: '⌫', w: 1.5 },
   ],
   [
-    { key: 'Tab', display: 'Tab', w: 1.5, noFinger: true },
+    { key: 'Tab', display: 'Tab', w: 1.5 },
     { key: 'q', display: 'Q', w: 1 },
     { key: 'w', display: 'W', w: 1 },
     { key: 'e', display: 'E', w: 1 },
@@ -90,7 +93,7 @@ export const KEYBOARD_ROWS = [
     { key: '\\', display: '\\', w: 1 },
   ],
   [
-    { key: 'CapsLock', display: 'Caps', w: 1.75, noFinger: true },
+    { key: 'CapsLock', display: 'Caps', w: 1.75 },
     { key: 'a', display: 'A', w: 1 },
     { key: 's', display: 'S', w: 1 },
     { key: 'd', display: 'D', w: 1 },
@@ -102,10 +105,10 @@ export const KEYBOARD_ROWS = [
     { key: 'l', display: 'L', w: 1 },
     { key: ';', display: ';', w: 1 },
     { key: "'", display: "'", w: 1 },
-    { key: 'Enter', display: '↵', w: 1.75, noFinger: true },
+    { key: 'Enter', display: '↵', w: 1.75 },
   ],
   [
-    { key: 'ShiftLeft', display: '⇧', w: 2.25, noFinger: true },
+    { key: 'ShiftLeft', display: '⇧', w: 2.25 },
     { key: 'z', display: 'Z', w: 1 },
     { key: 'x', display: 'X', w: 1 },
     { key: 'c', display: 'C', w: 1 },
@@ -116,7 +119,7 @@ export const KEYBOARD_ROWS = [
     { key: ',', display: ',', w: 1 },
     { key: '.', display: '.', w: 1 },
     { key: '/', display: '/', w: 1 },
-    { key: 'ShiftRight', display: '⇧', w: 2.25, noFinger: true },
+    { key: 'ShiftRight', display: '⇧', w: 2.25 },
   ],
   [
     { key: ' ', display: '', w: 5, noFinger: false },
@@ -134,6 +137,13 @@ export const SHIFTED_KEY_MAP = {
 
 export function getFingerForKey(key) {
   return KEY_TO_FINGER[key.toLowerCase()] || KEY_TO_FINGER[key] || null
+}
+
+// Returns the correct opposite-hand shift key for a given character
+export function getShiftKey(charKey) {
+  const finger = KEY_TO_FINGER[charKey.toLowerCase()] || KEY_TO_FINGER[charKey]
+  if (!finger || finger === 'thumb') return null
+  return finger.startsWith('left-') ? 'ShiftRight' : 'ShiftLeft'
 }
 
 // SVG hand circle indices mapped to fingers

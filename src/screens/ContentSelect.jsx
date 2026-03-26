@@ -356,14 +356,14 @@ export default function ContentSelect({ user, onStart, onBack, initialCategory }
           <div className="bg-white rounded-2xl p-6 max-w-sm w-full mx-4 shadow-xl" onClick={e => e.stopPropagation()}>
             <h3 className="text-lg font-bold text-gray-800 mb-2">Continue where you left off?</h3>
             <p className="text-sm text-gray-500 mb-5">
-              You were on word {progress[selectedBlock.id]?.lastWordIndex} of {selectedBlock.wordCount} in <strong>{selectedBlock.title}</strong>.
+              You're {Math.round((progress[selectedBlock.id]?.lastWordIndex / selectedBlock.wordCount) * 100)}% through <strong>{selectedBlock.title}</strong>.
             </p>
             <div className="flex flex-col gap-2">
               <button onClick={() => { setShowResumeModal(false); handleStart(false) }} className="w-full py-3 bg-green-500 hover:bg-green-600 text-white font-bold rounded-xl transition-colors">
-                ▶️ Continue (word {progress[selectedBlock.id]?.lastWordIndex})
+                Continue ({Math.round((progress[selectedBlock.id]?.lastWordIndex / selectedBlock.wordCount) * 100)}%)
               </button>
               <button onClick={() => { setShowResumeModal(false); handleStart(true) }} className="w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition-colors">
-                🔄 Start from beginning
+                Start from beginning
               </button>
               <button onClick={() => setShowResumeModal(false)} className="w-full py-2 text-gray-400 text-sm hover:text-gray-600 transition-colors">
                 Cancel
