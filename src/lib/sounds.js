@@ -140,6 +140,27 @@ export function playNewRecord() {
   })
 }
 
+// Group completion pop — quick bright chirp for fun modes
+export function playGroupPop() {
+  const ctx = getContext()
+  if (ctx.state === 'suspended') ctx.resume()
+
+  // Quick two-note chirp: rising pitch
+  const osc = ctx.createOscillator()
+  osc.type = 'sine'
+  osc.frequency.setValueAtTime(600, ctx.currentTime)
+  osc.frequency.setValueAtTime(900, ctx.currentTime + 0.04)
+
+  const gain = ctx.createGain()
+  gain.gain.setValueAtTime(0.2, ctx.currentTime)
+  gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12)
+
+  osc.connect(gain)
+  gain.connect(ctx.destination)
+  osc.start(ctx.currentTime)
+  osc.stop(ctx.currentTime + 0.12)
+}
+
 // Generate a subtle error sound — short low buzz/thud
 export function playError() {
   const ctx = getContext()

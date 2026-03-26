@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { seedStarterContent, seedHobbitContent, saveSession, getContentBlock, getProgress, getBestWpm } from './lib/storage'
+import { seedStarterContent, seedHobbitContent, seedCanucksContent, seedKeyboardBasicsContent, migrateContent, saveSession, getContentBlock, getContentBlocks, getProgress, getBestWpm } from './lib/storage'
 import UserSelect from './screens/UserSelect'
 import AdminScreen from './screens/AdminScreen'
 import ContentSelect from './screens/ContentSelect'
@@ -18,6 +18,9 @@ export default function App() {
     async function init() {
       await seedStarterContent()
       await seedHobbitContent()
+      await seedCanucksContent()
+      await seedKeyboardBasicsContent()
+      await migrateContent()
       setReady(true)
     }
     init()
@@ -45,7 +48,29 @@ export default function App() {
       startedAt: Date.now() - results.elapsed * 1000,
       completedAt: Date.now(),
     })
-    setSessionResults({ ...results, isNewRecord, previousBest })
+
+    // Find next logical block
+    const allBlocks = await getContentBlocks()
+    const currentBlock = sessionConfig.block
+    let nextBlock = null
+
+    if (currentBlock.category === 'Keyboard Basics') {
+      // KB: next by phase then order
+      const kbBlocks = allBlocks
+        .filter(b => b.category === 'Keyboard Basics')
+        .sort((a, b) => a.phase !== b.phase ? a.phase - b.phase : a.order - b.order)
+      const idx = kbBlocks.findIndex(b => b.id === currentBlock.id)
+      if (idx >= 0 && idx < kbBlocks.length - 1) nextBlock = kbBlocks[idx + 1]
+    } else if (currentBlock.category === 'Story' && currentBlock.series) {
+      // Story: next in same series by order
+      const seriesBlocks = allBlocks
+        .filter(b => b.series === currentBlock.series)
+        .sort((a, b) => (a.order || 0) - (b.order || 0))
+      const idx = seriesBlocks.findIndex(b => b.id === currentBlock.id)
+      if (idx >= 0 && idx < seriesBlocks.length - 1) nextBlock = seriesBlocks[idx + 1]
+    }
+
+    setSessionResults({ ...results, isNewRecord, previousBest, nextBlock })
     setScreen('results')
   }
 
@@ -77,6 +102,22 @@ export default function App() {
     setScreen('typing')
   }
 
+  async function handleNextLesson() {
+    const nextBlock = sessionResults?.nextBlock
+    if (!nextBlock) return
+    const isStoryOrKb = nextBlock.category === 'Story' || nextBlock.category === 'Keyboard Basics'
+    setSessionConfig({
+      block: nextBlock,
+      startWord: 0,
+      wordCount: isStoryOrKb ? null : sessionConfig?.wordCount,
+      timeLimit: isStoryOrKb ? null : sessionConfig?.timeLimit,
+      textMode: isStoryOrKb ? 'full' : (sessionConfig?.textMode || 'basic'),
+      allActiveKeys: nextBlock.allActiveKeys || null,
+    })
+    setSessionResults(null)
+    setScreen('typing')
+  }
+
   function goHome() {
     setCurrentUser(null)
     setSessionConfig(null)
@@ -84,8 +125,9 @@ export default function App() {
     setScreen('userSelect')
   }
 
-  function goToContentSelect() {
-    setSessionConfig(null)
+  function goToContentSelect(category) {
+    const cat = category || null
+    setSessionConfig(prev => ({ ...prev, _returnCategory: cat }))
     setSessionResults(null)
     setScreen('contentSelect')
   }
@@ -119,6 +161,7 @@ export default function App() {
           user={currentUser}
           onStart={handleStartSession}
           onBack={goHome}
+          initialCategory={sessionConfig?._returnCategory || null}
         />
       )
 
@@ -137,7 +180,13 @@ export default function App() {
         <ResultsScreen
           results={sessionResults}
           onRetry={handleRetry}
-          onHome={goToContentSelect}
+          onNext={sessionResults?.nextBlock ? handleNextLesson : null}
+          nextBlockTitle={sessionResults?.nextBlock?.title}
+          onHome={() => {
+            const cat = sessionConfig?.block?.category
+            const categoryId = cat === 'Keyboard Basics' ? 'keyboard' : cat === 'Story' ? 'story' : cat === 'General Practice' ? 'general' : null
+            goToContentSelect(categoryId)
+          }}
         />
       )
 

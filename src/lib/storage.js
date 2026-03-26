@@ -256,3 +256,138 @@ export async function seedHobbitContent() {
   })
   await batch.commit()
 }
+
+// ── Canucks Hockey Content ────────────────────────────
+
+export async function seedCanucksContent() {
+  const snap = await getDoc(doc(db, 'contentBlocks', 'canucks-1'))
+  if (snap.exists()) return
+
+  const canucksBlocks = [
+    { id: 'canucks-1', title: 'The Expansion', order: 1, text: 'The Vancouver Canucks joined the National Hockey League in 1970 as an expansion team alongside the Buffalo Sabres. They have never won the Stanley Cup.' },
+    { id: 'canucks-2', title: 'First Final', order: 2, text: 'In 1982 the Canucks reached the Stanley Cup Final for the first time. They were swept in four games by the New York Islanders. That run gave birth to towel power.' },
+    { id: 'canucks-3', title: 'The Russian Rocket', order: 3, text: 'Pavel Bure arrived in 1991 and changed everything. Known as the Russian Rocket, he scored 60 goals in 1994 and carried the team deep into the playoffs.' },
+    { id: 'canucks-4', title: 'Game 7 Heartbreak', order: 4, text: 'That spring the Canucks fought all the way to Game 7 of the Stanley Cup Final. They lost to the New York Rangers. Kirk McLean was brilliant in net throughout the run.' },
+    { id: 'canucks-5', title: 'The Sedin Era', order: 5, text: 'The twin brothers Daniel and Henrik Sedin were drafted second and third overall in 1999. They played their entire careers in Vancouver and hold most of the franchise scoring records.' },
+    { id: 'canucks-6', title: 'Presidents Trophy', order: 6, text: 'In 2011 the Canucks won the Presidents Trophy with 117 points. They reached the Final again but lost to the Boston Bruins in seven games. Game 7 ended 4 to 0.' },
+    { id: 'canucks-7', title: 'The Long Wait', order: 7, text: 'Three trips to the Final. Three losses. No parades. The Canucks remain one of the longest suffering franchises in professional hockey. The Cup has never come to Vancouver.' },
+    { id: 'canucks-8', title: 'Towel Power', order: 8, text: 'Through all of it the fans keep showing up. They wave their white towels and believe that one day the Stanley Cup will finally come home to British Columbia.' },
+  ]
+
+  const batch = writeBatch(db)
+  canucksBlocks.forEach(b => {
+    b.category = 'Story'
+    b.series = 'Hockey: Canucks History'
+    b.wordCount = b.text.split(/\s+/).length
+    b.createdAt = Date.now()
+    batch.set(doc(db, 'contentBlocks', b.id), b)
+  })
+  await batch.commit()
+}
+
+// ── Keyboard Basics Content ───────────────────────────
+
+export async function seedKeyboardBasicsContent() {
+  const snap = await getDoc(doc(db, 'contentBlocks', 'kb-1.01'))
+  if (snap.exists()) return
+
+  const HR = ['a','s','d','f','g','h','j','k','l',';']
+  const TR = ['q','w','e','r','t','y','u','i','o','p']
+  const BR = ['z','x','c','v','b','n','m',',','.','/']
+
+  const kbBlocks = [
+    // Phase 1: Home Row
+    { id: 'kb-1.01', title: 'Home Position: J and F', phase: 1, phaseTitle: 'Home Row', order: 1, keysIntroduced: ['f','j'], allActiveKeys: ['f','j',' '], unlockRequirement: null, passAccuracy: 90, masteryWpm: 10, text: 'jjj fff jjj fff jf jf jf fj fj fj jjf fjj jff ffj jf jf fj fj jfj fjf jfj fjf jf fj jf fj fj jf jfj fff jjj fjf jfj ffjj jjff fjfj jfjf fj jf fj jf fjf' },
+    { id: 'kb-1.02', title: 'Right Hand: J and K', phase: 1, phaseTitle: 'Home Row', order: 2, keysIntroduced: ['k'], allActiveKeys: ['f','j','k',' '], unlockRequirement: 'kb-1.01', passAccuracy: 90, masteryWpm: 10, text: 'jjj kkk jjj kkk jk jk jk kj kj kj jkj kjk jkj kjk jjk kkj jkk kjj jk kj jk kj kjk jkj kjk jkj jk kj fjk fkj jfk kfj fj fk jf kf fjk fkj jfk kfj fk jk' },
+    { id: 'kb-1.03', title: 'Left Hand: F and D', phase: 1, phaseTitle: 'Home Row', order: 3, keysIntroduced: ['d'], allActiveKeys: ['f','j','k','d',' '], unlockRequirement: 'kb-1.02', passAccuracy: 90, masteryWpm: 10, text: 'fff ddd fff ddd fd fd fd df df df fdf dfd fdf dfd ffd ddf fdd dff fd df fd df dfd fdf dfd fdf fd df fdf dfd fjd fkd djf dkf fd jk dk fj fd kj fdk djk fjd dkf jdk' },
+    { id: 'kb-1.04', title: 'Outer Right: L and ;', phase: 1, phaseTitle: 'Home Row', order: 4, keysIntroduced: ['l',';'], allActiveKeys: ['f','j','k','d','l',';',' '], unlockRequirement: 'kb-1.03', passAccuracy: 90, masteryWpm: 10, text: 'lll ;;; lll ;;; l; l; ;l ;l l;l ;l; l;l ;l; ll; ;;l jkl; ;lkj jl kl j; k; lj lk ;j ;k jkl; ;lkj l; ;l fjl fkl djl dkl fl dl jl kl lf ld lj lk fl; dk; jl;' },
+    { id: 'kb-1.05', title: 'Outer Left: S and A', phase: 1, phaseTitle: 'Home Row', order: 5, keysIntroduced: ['s','a'], allActiveKeys: ['a','s','d','f','j','k','l',';',' '], unlockRequirement: 'kb-1.04', passAccuracy: 90, masteryWpm: 10, text: 'sss aaa sss aaa sa sa as as sas asa sas asa ssa aas fds asd fda saf ads sad fas daf asdf fdsa asdf fdsa a dad a fad a lad a lass a lash sad dad fad' },
+    { id: 'kb-1.06', title: 'Home Row Complete: G and H', phase: 1, phaseTitle: 'Home Row', order: 6, keysIntroduced: ['g','h'], allActiveKeys: [...HR,' '], unlockRequirement: 'kb-1.05', passAccuracy: 90, masteryWpm: 10, text: 'ggg hhh ggg hhh gh gh hg hg ghg hgh ghg hgh ggh hhg fgf jhj fgf jhj fg jh gf hj fgh jhg fgj jhf ghj hgf had has ash dash gash lash hash shag glad flag glass' },
+    { id: 'kb-1.07', title: 'Home Row Words', phase: 1, phaseTitle: 'Home Row', order: 7, keysIntroduced: [], allActiveKeys: [...HR,' '], unlockRequirement: 'kb-1.06', passAccuracy: 90, masteryWpm: 12, text: 'a ad ah as add ads all ash ask dad fad gag gal gas had has jag lag lad sad sag add all ask ash dad fad lash gash dash hash glad flag fall hall flask shall salad glass slash flash flags dads lads gals flash a glad lad had a salad a sad lass shall dash a flag all lads had flash flags dad shall add a glass half' },
+
+    // Phase 2: Top Row
+    { id: 'kb-2.01', title: 'Top Index: R and U', phase: 2, phaseTitle: 'Top Row', order: 1, keysIntroduced: ['r','u'], allActiveKeys: [...HR,'r','u',' '], unlockRequirement: 'kb-1.07', passAccuracy: 90, masteryWpm: 12, text: 'rrr uuu rrr uuu ru ru ur ur rur uru rur uru rru uur frf juj frf juj fr ju rf uj fru jur ruf ujf frf juj fur rug ruf dusk rush gush husk dug jug full hull a fur rug a full jar a rush' },
+    { id: 'kb-2.02', title: 'Top Index Stretch: T and Y', phase: 2, phaseTitle: 'Top Row', order: 2, keysIntroduced: ['t','y'], allActiveKeys: [...HR,'r','u','t','y',' '], unlockRequirement: 'kb-2.01', passAccuracy: 90, masteryWpm: 12, text: 'ttt yyy ttt yyy ty ty yt yt tyt yty tyt yty tty yyt ftf jyj ftf jyj ft jy tf yj frt jyu trf yuj tyt yty that stay dusty rusty gusty hasty yards dusty lusty talk salt fast last task star start drag trust staff' },
+    { id: 'kb-2.03', title: 'Top Middle: E and I', phase: 2, phaseTitle: 'Top Row', order: 3, keysIntroduced: ['e','i'], allActiveKeys: [...HR,'r','u','t','y','e','i',' '], unlockRequirement: 'kb-2.02', passAccuracy: 90, masteryWpm: 12, text: 'eee iii eee iii ei ei ie ie eie iei eie iei eei iie ded kik ded kik de ki ed ik dei kie eid ike ded kik the tide side life like fire hire ride this kiss sit like site risk tied dies kite fish diet disk silk rig dear kiss hike tide safe sake tile disk fire rise its he did this the kite is his she likes dried fish it is' },
+    { id: 'kb-2.04', title: 'Top Ring: W and O', phase: 2, phaseTitle: 'Top Row', order: 4, keysIntroduced: ['w','o'], allActiveKeys: [...HR,'r','u','t','y','e','i','w','o',' '], unlockRequirement: 'kb-2.03', passAccuracy: 90, masteryWpm: 12, text: 'www ooo www ooo wo wo ow ow wow owo wow owo wwo oow sws lol sws lol sw lo ws ol swo low wos ols sws lol word work show flow two good look stood wood foot too she would go to work she took good flowers she wrote those words look right do this work for so low a fee' },
+    { id: 'kb-2.05', title: 'Top Pinky: Q and P', phase: 2, phaseTitle: 'Top Row', order: 5, keysIntroduced: ['q','p'], allActiveKeys: [...HR,...TR,' '], unlockRequirement: 'kb-2.04', passAccuracy: 90, masteryWpm: 12, text: 'qqq ppp qqq ppp qp qp pq pq qpq pqp qpq pqp qqp ppq aqa ;p; aqa ;p; aq ;p qa p; aqp ;pq qpa p;a aqa ;p; quip quote equip put tip top stop skip drop sip the proper purpose of our trip was to skip past square quiet quest proof adopt press operate strip plot' },
+    { id: 'kb-2.06', title: 'Top Row + Home Row Words', phase: 2, phaseTitle: 'Top Row', order: 6, keysIntroduced: [], allActiveKeys: [...HR,...TR,' '], unlockRequirement: 'kb-2.05', passAccuracy: 90, masteryWpm: 15, text: 'quite large ideas would flow freely through the wire the quick wolf leapt right off their old study desk our guide typed his true quotes outside proper style words require regular faithful effort to type faster three wise soldiers fought through your little squad' },
+
+    // Phase 3: Bottom Row
+    { id: 'kb-3.01', title: 'Bottom Index: V and N', phase: 3, phaseTitle: 'Bottom Row', order: 1, keysIntroduced: ['v','n'], allActiveKeys: [...HR,...TR,'v','n',' '], unlockRequirement: 'kb-2.06', passAccuracy: 90, masteryWpm: 12, text: 'vvv nnn vvv nnn vn vn nv nv vnv nvn vnv nvn vvn nnv fvf jnj fvf jnj fv jn vf nj fvn jnv vnf nvj fvf jnj vine even never given seven driven haven invest inner driven innovation involves venture given seven events' },
+    { id: 'kb-3.02', title: 'Bottom Index Stretch: B', phase: 3, phaseTitle: 'Bottom Row', order: 2, keysIntroduced: ['b'], allActiveKeys: [...HR,...TR,'v','n','b',' '], unlockRequirement: 'kb-3.01', passAccuracy: 90, masteryWpm: 12, text: 'bbb bbb bbb fbf fbf fbf bf fb bf fb bfb fbf bfb fbf big bit bin but both been begin better above observe above the bent river banks brown birds begin to sing bright observations build better habits over the web' },
+    { id: 'kb-3.03', title: 'Bottom Middle: C and M', phase: 3, phaseTitle: 'Bottom Row', order: 3, keysIntroduced: ['c','m'], allActiveKeys: [...HR,...TR,'v','n','b','c','m',' '], unlockRequirement: 'kb-3.02', passAccuracy: 90, masteryWpm: 12, text: 'ccc mmm ccc mmm cm cm mc mc cmc mcm cmc mcm ccm mmc dcd kmk dcd kmk dc km cd mk dcm kmc cmd mkd dcd kmk come much mind each become machine common claim micro the common custom becomes much more convenient in time' },
+    { id: 'kb-3.04', title: 'Bottom Row Complete', phase: 3, phaseTitle: 'Bottom Row', order: 4, keysIntroduced: ['x','z',',','.','/'], allActiveKeys: [...HR,...TR,...BR,' '], unlockRequirement: 'kb-3.03', passAccuracy: 90, masteryWpm: 12, text: 'xxx zzz xxx zzz xz xz zx zx ,,, ... ,,, ... ,., .,. sxs aza sxs aza sx az xs za l,l k.k l,l k.k ;/; ;/; fix six box mix zone zero frozen maximize exact seize he fixed six broken boxes. the frozen zone was exact. maximize your zone. fix, mix, seize the extra prizes.' },
+    { id: 'kb-3.05', title: 'Bottom + Home Words', phase: 3, phaseTitle: 'Bottom Row', order: 5, keysIntroduced: [], allActiveKeys: [...HR,...TR,...BR,' '], unlockRequirement: 'kb-3.04', passAccuracy: 90, masteryWpm: 12, text: 'black van, calm man, vast land, small black cabinet. zinc flax, clam bask, blank canvas, mangle and cash.' },
+    { id: 'kb-3.06', title: 'All Three Rows', phase: 3, phaseTitle: 'Bottom Row', order: 6, keysIntroduced: [], allActiveKeys: [...HR,...TR,...BR,' '], unlockRequirement: 'kb-3.05', passAccuracy: 90, masteryWpm: 15, text: 'a complex problem requires a calm and exact response. maximize every chance. visualize the bronze fixtures. the brave explorer conquered six frozen mountain zones. my excellent friend recognized the broken valve. jumping quickly over fences, the fox was gone by dawn.' },
+
+    // Phase 4: Putting It All Together
+    { id: 'kb-4.01', title: 'All Letters Review', phase: 4, phaseTitle: 'All Together', order: 1, keysIntroduced: [], allActiveKeys: null, unlockRequirement: 'kb-3.06', passAccuracy: 90, masteryWpm: 15, text: 'the five boxing wizards jump quickly over the fence. pack my box with five dozen large jugs of old whisky. the quick brown fox jumps over the lazy sleeping dog. how vexingly quick daft zebras jump over the low box. a large fawn jumped quickly over white zinc boxes now.' },
+    { id: 'kb-4.02', title: 'Common Words Speed', phase: 4, phaseTitle: 'All Together', order: 2, keysIntroduced: [], allActiveKeys: null, unlockRequirement: 'kb-4.01', passAccuracy: 90, masteryWpm: 15, text: 'the of and to a in is it you that he was for on are with as his they be at one have this from or had by but not what all were when we there can an your which their said if do will each about how up out if about who get which go me when make can like time no just him know take people into year your good some could them see other than then now look only come its over think also back after use two how our work first well way even new want because any these give day most us' },
+    { id: 'kb-4.03', title: 'Sentences and Flow', phase: 4, phaseTitle: 'All Together', order: 3, keysIntroduced: [], allActiveKeys: null, unlockRequirement: 'kb-4.02', passAccuracy: 90, masteryWpm: 15, text: 'She walked to the store and found the last jar on the shelf. His dog ran through the field and jumped over the old stone wall. We should find a quiet place to sit and read for a while. The children played outside until the sun went down behind the hill. I think the best part of the day is right after the rain stops.' },
+    { id: 'kb-4.04', title: 'Capitals Practice', phase: 4, phaseTitle: 'All Together', order: 4, keysIntroduced: [], allActiveKeys: null, unlockRequirement: 'kb-4.03', passAccuracy: 90, masteryWpm: 15, text: 'Adam Ben Carl David Ed Frank George Henry Isaac Jack Kate Lisa Mary Nancy Olivia Paul Quinn Rose Sam Tina Toronto Vancouver Montreal Ottawa Calgary Edmonton Halifax God is good. Jesus Christ is Lord. The Lord is faithful. The United States and Canada share the longest border.' },
+    { id: 'kb-4.05', title: 'Numbers Row', phase: 4, phaseTitle: 'All Together', order: 5, keysIntroduced: ['1','2','3','4','5','6','7','8','9','0'], allActiveKeys: null, unlockRequirement: 'kb-4.04', passAccuracy: 90, masteryWpm: 12, text: '111 222 333 444 555 666 777 888 999 000 123 456 789 012 345 678 901 234 567 890 There are 12 eggs in a dozen and 52 weeks in a year. He drove 340 miles in about 5 hours and 20 minutes. The score was 108 to 97 with 3 minutes and 14 seconds left. Genesis 1:1 Psalm 23:1 John 3:16 Romans 8:28 Isaiah 40:31' },
+    { id: 'kb-4.06', title: 'Common Punctuation', phase: 4, phaseTitle: 'All Together', order: 6, keysIntroduced: [], allActiveKeys: null, unlockRequirement: 'kb-4.05', passAccuracy: 90, masteryWpm: 12, text: 'Yes, I would like that. No, I don\'t think so. Really? "Hello," she said. "How are you doing today?" It\'s a beautiful day; the sun is shining brightly. He asked, "What time is it?" She replied, "It\'s noon." Wait -- did you hear that? Yes! I heard it clearly. The dog (a golden retriever) ran across the yard.' },
+  ]
+
+  const batch = writeBatch(db)
+  kbBlocks.forEach(b => {
+    b.category = 'Keyboard Basics'
+    b.wordCount = b.text.split(/\s+/).length
+    b.createdAt = Date.now()
+    batch.set(doc(db, 'contentBlocks', b.id), b)
+  })
+  await batch.commit()
+}
+
+// ── Content Migration ─────────────────────────────────
+// Migrates existing content to new category structure (idempotent)
+
+export async function migrateContent() {
+  const snap = await getDocs(collection(db, 'contentBlocks'))
+  const blocks = snap.docs.map(d => d.data())
+  const batch = writeBatch(db)
+  let changed = false
+
+  blocks.forEach(b => {
+    const ref = doc(db, 'contentBlocks', b.id)
+    const updates = {}
+
+    // Recategorize old Fundamentals → General Practice
+    if (b.category === 'Fundamentals') {
+      updates.category = 'General Practice'
+    }
+
+    // Recategorize Challenge → General Practice
+    if (b.category === 'Challenge') {
+      updates.category = 'General Practice'
+    }
+
+    // Add series to Hobbit blocks
+    if (b.id.startsWith('hobbit-') && !b.series) {
+      updates.series = 'The Hobbit: Chapter I'
+    }
+
+    if (Object.keys(updates).length > 0) {
+      batch.set(ref, { ...b, ...updates })
+      changed = true
+    }
+  })
+
+  if (changed) await batch.commit()
+}
+
+// ── Best Accuracy Helper ──────────────────────────────
+
+export async function getBestAccuracy(userId) {
+  const sessions = await getSessions(userId)
+  const best = {}
+  sessions.forEach(s => {
+    if (s.contentBlockId && s.accuracy > 0) {
+      if (!best[s.contentBlockId] || s.accuracy > best[s.contentBlockId]) {
+        best[s.contentBlockId] = s.accuracy
+      }
+    }
+  })
+  return best
+}

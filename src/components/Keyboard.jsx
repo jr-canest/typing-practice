@@ -4,7 +4,7 @@ import { KEYBOARD_ROWS, KEY_TO_FINGER, FINGER_COLORS, SHIFTED_KEY_MAP } from '..
 const KEY_SIZE = 34
 const GAP = 2
 
-export default function Keyboard({ targetKey, pressedKey }) {
+export default function Keyboard({ targetKey, pressedKey, activeKeys }) {
   const [animatingKey, setAnimatingKey] = useState(null)
 
   const targetLower = targetKey?.toLowerCase()
@@ -32,6 +32,9 @@ export default function Keyboard({ targetKey, pressedKey }) {
             const isAnimating = animatingKey === kLower
             const fingerColor = kFinger ? FINGER_COLORS[kFinger] : 'bg-gray-200'
 
+            // If activeKeys is set, dim keys not yet introduced
+            const isDimmed = activeKeys && !k.noFinger && !activeKeys.includes(kLower) && k.key !== ' '
+
             const w = k.w * KEY_SIZE + (k.w > 1 ? (k.w - 1) * GAP : 0)
 
             return (
@@ -40,7 +43,9 @@ export default function Keyboard({ targetKey, pressedKey }) {
                 className={`
                   flex items-center justify-center rounded-lg font-mono font-bold
                   border-b-2 select-none transition-all
-                  ${isHighlighted
+                  ${isDimmed
+                    ? 'bg-gray-100 border-gray-200 opacity-25'
+                    : isHighlighted
                     ? `${fingerColor} border-gray-400 ring-2 ring-blue-500 ring-offset-1 scale-105 shadow-lg z-10`
                     : `${fingerColor} border-gray-300 opacity-60`
                   }

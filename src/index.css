@@ -125,3 +125,169 @@
 .countdown-pop {
   animation: countdown-pop 0.5s ease-out;
 }
+
+/* ─── Fun Display Mode Animations ─── */
+
+/* Target hit — shatter on impact */
+@keyframes target-hit {
+  0% { transform: scale(1); opacity: 1; }
+  30% { transform: scale(1.3); opacity: 0.7; }
+  100% { transform: scale(0); opacity: 0; }
+}
+.target-hit {
+  animation: target-hit 0.3s ease-out forwards;
+}
+
+/* Target particles — fly outward from center */
+@keyframes target-particle {
+  0% { transform: translate(-50%, -50%) rotate(var(--angle)) translateX(0); opacity: 1; }
+  100% { transform: translate(-50%, -50%) rotate(var(--angle)) translateX(40px); opacity: 0; }
+}
+.target-particle {
+  animation: target-particle 0.35s ease-out forwards;
+}
+
+/* Target entrance */
+@keyframes target-enter {
+  0% { transform: scale(0) rotate(90deg); opacity: 0; }
+  60% { transform: scale(1.1) rotate(-5deg); }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+.target-enter {
+  animation: target-enter 0.3s ease-out;
+}
+
+/* Target knockback — falls backward like a fair game target */
+@keyframes target-knockback {
+  0% { transform: rotateX(0deg) scale(1); opacity: 1; }
+  40% { transform: rotateX(-70deg) scale(0.9); opacity: 0.7; }
+  100% { transform: rotateX(-90deg) scale(0.7) translateY(20px); opacity: 0; }
+}
+.target-knockback {
+  animation: target-knockback 0.35s ease-in forwards;
+  transform-origin: bottom center;
+}
+
+/* Spark particles on target hit */
+@keyframes target-spark {
+  0% { transform: translate(-50%, -50%) rotate(var(--spark-angle)) translateX(0); opacity: 1; }
+  100% { transform: translate(-50%, -50%) rotate(var(--spark-angle)) translateX(var(--spark-dist, 40px)); opacity: 0; }
+}
+.target-spark {
+  animation: target-spark 0.4s ease-out forwards;
+}
+
+/* Bullet shooting upward to target center */
+@keyframes bullet-shoot {
+  0% { transform: translateY(0); opacity: 1; }
+  80% { transform: translateY(var(--bullet-travel, -80px)); opacity: 1; }
+  100% { transform: translateY(var(--bullet-travel, -80px)); opacity: 0; }
+}
+.bullet-shoot {
+  animation: bullet-shoot 0.13s ease-in forwards;
+}
+
+/* Bubble float — gentle bobbing like a real bubble */
+@keyframes bubble-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+/* Bubble Pop — character pops and fades */
+@keyframes bubble-pop {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.4); opacity: 0.6; }
+  100% { transform: scale(0); opacity: 0; }
+}
+.bubble-pop {
+  animation: bubble-pop 0.3s ease-out forwards;
+}
+
+/* Bubble shake on error */
+@keyframes bubble-shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+.bubble-shake {
+  animation: bubble-shake 0.2s ease-out;
+}
+
+/* Bubble entrance — scale from 0 with slight rotation */
+@keyframes bubble-enter {
+  0% { transform: scale(0) rotate(-10deg); opacity: 0; }
+  70% { transform: scale(1.1) rotate(2deg); }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+.bubble-enter {
+  animation: bubble-enter 0.35s ease-out;
+}
+
+/* Tile drop — falls down with rotation */
+@keyframes tile-drop {
+  0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(120px) rotate(15deg); opacity: 0; }
+}
+.tile-drop {
+  animation: tile-drop 0.35s ease-in forwards;
+}
+
+/* Tile entrance — drops in from above */
+@keyframes tile-enter {
+  0% { transform: translateY(-60px); opacity: 0; }
+  60% { transform: translateY(4px); }
+  100% { transform: translateY(0); opacity: 1; }
+}
+.tile-enter {
+  animation: tile-enter 0.3s ease-out;
+}
+
+/* Spotlight — character zooms in */
+@keyframes char-zoom-in {
+  0% { transform: scale(0.3) rotate(-5deg); opacity: 0; }
+  70% { transform: scale(1.05); }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+.char-zoom-in {
+  animation: char-zoom-in 0.3s ease-out;
+}
+
+/* Spotlight — character explodes outward */
+@keyframes char-explode {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.5); opacity: 0.5; }
+  100% { transform: scale(2.5); opacity: 0; }
+}
+.char-explode {
+  animation: char-explode 0.25s ease-out forwards;
+}
+
+/* Spotlight — shake on error */
+@keyframes char-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(3px); }
+}
+.char-shake {
+  animation: char-shake 0.2s ease-out;
+}
+
+/* Group completion burst */
+@keyframes group-burst {
+  0% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(1.8); opacity: 0; }
+}
+.group-burst {
+  animation: group-burst 0.4s ease-out forwards;
+}
+
+/* Space prompt pulse */
+@keyframes space-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+.space-pulse {
+  animation: space-pulse 0.8s ease-in-out infinite;
+}

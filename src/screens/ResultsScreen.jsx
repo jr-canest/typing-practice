@@ -45,7 +45,7 @@ function Confetti() {
   )
 }
 
-export default function ResultsScreen({ results, onRetry, onHome }) {
+export default function ResultsScreen({ results, onRetry, onNext, nextBlockTitle, onHome }) {
   const { wpm, accuracy, elapsed, wordsCompleted, totalWords, keyErrors, isNewRecord, previousBest } = results
   const [showContent, setShowContent] = useState(false)
   const [showRecord, setShowRecord] = useState(false)
@@ -201,18 +201,26 @@ export default function ResultsScreen({ results, onRetry, onHome }) {
         </div>
 
         {/* Actions */}
-        <div className="flex gap-3 justify-center">
+        <div className="flex gap-2 justify-center">
           <button
             onClick={onRetry}
-            className="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-xl transition-colors shadow-md"
+            className="px-4 py-2.5 bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold rounded-xl transition-colors shadow-md"
           >
-            🔄 Try Again
+            Try Again
           </button>
+          {onNext && (
+            <button
+              onClick={onNext}
+              className="px-4 py-2.5 bg-green-500 hover:bg-green-600 text-white text-sm font-semibold rounded-xl transition-colors shadow-md max-w-[200px] truncate"
+            >
+              Next: {nextBlockTitle}
+            </button>
+          )}
           <button
             onClick={onHome}
-            className="px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold rounded-xl transition-colors"
+            className="px-4 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-700 text-sm font-semibold rounded-xl transition-colors"
           >
-            🏠 Home
+            Back to Lessons
           </button>
         </div>
       </div>

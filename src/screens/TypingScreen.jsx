@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import Keyboard from '../components/Keyboard'
 import HandGuide from '../components/HandGuide'
+import FunDisplay from '../components/FunDisplay'
 import { KEY_TO_FINGER } from '../lib/keyboard'
 import { saveProgress } from '../lib/storage'
-import { initSounds, playKeystroke, playError, playCountdownBeep } from '../lib/sounds'
+import { initSounds, playKeystroke, playError, playCountdownBeep, playGroupPop } from '../lib/sounds'
 
 // Strip punctuation and lowercase for basic mode
 function sanitizeBasic(text) {
@@ -15,7 +16,7 @@ function sanitizeBasic(text) {
 }
 
 export default function TypingScreen({ user, session, onFinish, onQuit }) {
-  const { block, startWord, wordCount, timeLimit, textMode = 'basic' } = session
+  const { block, startWord, wordCount, timeLimit, textMode = 'basic', allActiveKeys } = session
   const rawText = textMode === 'basic' ? sanitizeBasic(block.text) : block.text
   const allWords = rawText.split(/\s+/).filter(Boolean)
   const endWord = wordCount
@@ -96,6 +97,17 @@ export default function TypingScreen({ user, session, onFinish, onQuit }) {
   const scale = Math.min(vw / 1024, vh / 768, 1)
 
   const cardShadow = '0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06)'
+
+  // Determine display mode for KB drill sections vs paper card
+  const isKeyboardBasics = block.category === 'Keyboard Basics'
+  const consolidationIds = ['kb-1.07', 'kb-2.06', 'kb-3.05', 'kb-3.06']
+  const isConsolidation = isKeyboardBasics && (
+    consolidationIds.includes(block.id) || block.id?.startsWith('kb-4.')
+  )
+  const funModes = ['target', 'pop', 'cascade']
+  const displayMode = !isKeyboardBasics || isConsolidation
+    ? 'paper'
+    : funModes[((block.order || 1) - 1) % 3]
 
   const currentWord = words[wordIndex] || ''
   const nextChar = currentWord[charIndex] || ' '
@@ -248,6 +260,7 @@ export default function TypingScreen({ user, session, onFinish, onQuit }) {
         setCharIndex(0)
         setHasError(false)
         setSlideKey((k) => k + 1)
+        if (displayMode !== 'paper') playGroupPop()
       } else {
         // Wrong key when space was expected
         playError()
@@ -414,59 +427,71 @@ export default function TypingScreen({ user, session, onFinish, onQuit }) {
         </button>
       </div>
 
-      {/* Paper-style text display — centered between stats and keyboard */}
-      <div className="flex-1 flex items-center justify-center px-6 min-h-0 overflow-hidden" style={{ paddingTop: 8, paddingBottom: 0, marginBottom: -30 }}>
-        <div
-          ref={paperRef}
-          className="bg-white/80 backdrop-blur-sm rounded-2xl overflow-hidden"
-          style={{
-            maxWidth: 640 * scale,
-            maxHeight: Math.min(260 * scale, vh * 0.28),
-            padding: `${24 * scale}px ${32 * scale}px`,
-            boxShadow: cardShadow,
-          }}
-        >
-          <div ref={wordsContainerRef} className="font-mono leading-relaxed flex flex-wrap" style={{ fontSize: Math.max(24, 40 * scale), gap: `${6 * scale}px`, wordBreak: 'keep-all' }}>
-            {words.map((word, wi) => {
-              const isCurrentWord = wi === wordIndex
-              const isCompleted = wi < wordIndex
+      {/* Display area — fun modes for KB drills, paper card for everything else */}
+      {displayMode !== 'paper' ? (
+        <FunDisplay
+          mode={displayMode}
+          words={words}
+          wordIndex={wordIndex}
+          charIndex={charIndex}
+          hasError={hasError}
+          scale={scale}
+          streak={streak}
+        />
+      ) : (
+        <div className="flex-1 flex items-center justify-center px-6 min-h-0 overflow-hidden" style={{ paddingTop: 8, paddingBottom: 0, marginBottom: -30 }}>
+          <div
+            ref={paperRef}
+            className="bg-white/80 backdrop-blur-sm rounded-2xl overflow-hidden"
+            style={{
+              maxWidth: 640 * scale,
+              maxHeight: Math.min(260 * scale, vh * 0.28),
+              padding: `${24 * scale}px ${32 * scale}px`,
+              boxShadow: cardShadow,
+            }}
+          >
+            <div ref={wordsContainerRef} className="font-mono leading-relaxed flex flex-wrap" style={{ fontSize: Math.max(24, 40 * scale), gap: `${6 * scale}px`, wordBreak: 'keep-all' }}>
+              {words.map((word, wi) => {
+                const isCurrentWord = wi === wordIndex
+                const isCompleted = wi < wordIndex
 
-              const showSpaceSymbol = isCurrentWord && charIndex >= word.length
+                const showSpaceSymbol = isCurrentWord && charIndex >= word.length
 
-              const justDone = wi === justCompletedWord
+                const justDone = wi === justCompletedWord
 
-              return (
-                <span
-                  key={wi}
-                  ref={isCurrentWord ? currentWordRef : null}
-                  className="inline-block relative whitespace-nowrap"
-                >
-                  {isCurrentWord ? (
-                    word.split('').map((char, ci) => {
-                      let cls = 'text-gray-300'
-                      if (ci < charIndex) cls = 'text-green-500'
-                      else if (ci === charIndex && hasError) cls = 'text-white bg-red-500 rounded-sm px-0.5'
-                      else if (ci === charIndex) cls = 'text-gray-800 border-b-2 border-blue-500'
-                      return <span key={ci} className={cls}>{char}</span>
-                    })
-                  ) : (
-                    <span className={isCompleted ? 'text-green-400' : 'text-gray-300'}>{word}</span>
-                  )}
-                  <span className={showSpaceSymbol ? 'text-blue-400 animate-pulse' : 'invisible'}>⎵</span>
-                  {justDone && (
-                    <span key={`ghost-${slideKey}`} className="word-ghost">{word}</span>
-                  )}
-                </span>
-              )
-            })}
+                return (
+                  <span
+                    key={wi}
+                    ref={isCurrentWord ? currentWordRef : null}
+                    className="inline-block relative whitespace-nowrap"
+                  >
+                    {isCurrentWord ? (
+                      word.split('').map((char, ci) => {
+                        let cls = 'text-gray-300'
+                        if (ci < charIndex) cls = 'text-green-500'
+                        else if (ci === charIndex && hasError) cls = 'text-white bg-red-500 rounded-sm px-0.5'
+                        else if (ci === charIndex) cls = 'text-gray-800 border-b-2 border-blue-500'
+                        return <span key={ci} className={cls}>{char}</span>
+                      })
+                    ) : (
+                      <span className={isCompleted ? 'text-green-400' : 'text-gray-300'}>{word}</span>
+                    )}
+                    <span className={showSpaceSymbol ? 'text-blue-400 animate-pulse' : 'invisible'}>⎵</span>
+                    {justDone && (
+                      <span key={`ghost-${slideKey}`} className="word-ghost">{word}</span>
+                    )}
+                  </span>
+                )
+              })}
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Keyboard — scaled proportionally, nudged up to clear hands */}
       <div className="flex justify-center relative z-10" style={{ flexShrink: 0, marginBottom: 20 * scale }}>
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-3" style={{ transform: `scale(${scale})`, transformOrigin: 'bottom center', boxShadow: cardShadow }}>
-          <Keyboard targetKey={targetKey} pressedKey={pressedKey} />
+          <Keyboard targetKey={targetKey} pressedKey={pressedKey} activeKeys={allActiveKeys} />
         </div>
       </div>
       {/* Spacer for hands visibility below keyboard */}

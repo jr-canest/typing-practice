@@ -25,13 +25,46 @@ A typing practice app for homeschool kids. Built with React, uses Firestore for 
 
 ### Content System
 
-- Admin pastes in content blocks: paragraphs, word lists, etc.
-- Each content block has a title, category (e.g., "Fundamentals," "Challenge," "Story"), and the raw text
-- The app splits content into words for the typing exercise
-- Track per-user progress through each content block (which word they left off on)
-- Built-in starter content: Home Row Basics, Top Row Practice, Bottom Row Practice, Common English Words (100), Pangram Collection
-- Built-in story content: The Hobbit Chapter 1, split into 8 sections (~230-270 words each)
-- Best WPM record shown per content block on the selection screen
+Three categories with large icon-based selection:
+
+**Keyboard Basics** (⌨️) — 24 progressive lessons across 4 phases
+- Phase 1: Home Row (7 sections), Phase 2: Top Row (6), Phase 3: Bottom Row (6), Phase 4: All Together (6)
+- Sequential unlock: 90%+ accuracy required to unlock next section
+- Mastery badge at 95%+ accuracy AND 15+ WPM
+- Tester user bypasses all locks for testing
+- KB blocks stored with `phase`, `order`, `keysIntroduced`, `allActiveKeys`, `unlockRequirement`
+
+**Story Mode** (📖) — Stories grouped by series
+- The Hobbit: Chapter I (8 sections, ~230-270 words each)
+- Hockey: Canucks History (8 sections)
+- No settings bar, always full text mode with all words
+
+**General Practice** (📝) — Common English Words, Pangram Collection
+- Settings bar: Words/Time toggle, amount (20/50/100 or 2m/5m/10m), Basic/Full text mode
+
+### Fun Display Modes (Keyboard Basics)
+
+KB drill sections use playful typing modes instead of the paper card. The mode cycles based on block order: `['target', 'pop', 'cascade'][(order - 1) % 3]`. Consolidation sections (kb-1.07, kb-2.06, kb-3.05, kb-3.06, kb-4.*) use the traditional paper card.
+
+**Target Shoot** (`target`) — Carnival shooting gallery
+- Continuous stream of bullseye targets (including space as ⎵ target) sliding right-to-left
+- Aim reticle (4 tick marks) centered on current target
+- Hit animation: target knocks back + spark particles burst outward
+- Finger-colored bullseye rings, white center behind letter
+- Group pop sound on word completion
+
+**Bubble Pop** (`pop`) — Floating bubbles
+- Large circular bubbles with gradient shading and shine highlight
+- Gentle floating/bobbing animation (`bubble-float`)
+- Pop animation with colored particles on correct keystroke
+- Finger-colored glow on active bubble
+
+**Tile Drop** (`cascade`) — Scrabble tiles
+- Rectangular tiles with finger-colored bottom border
+- Tiles drop away with rotation on correct keystroke
+- New tiles cascade in from above
+
+**Component**: `src/components/FunDisplay.jsx` — renders mode based on prop, handles space prompt (hidden for target mode), progress dots/percentage
 
 ### Typing Screen
 
@@ -115,6 +148,7 @@ A typing practice app for homeschool kids. Built with React, uses Firestore for 
 - **Countdown beep**: Synthesized sine at 520Hz (normal) or 880→1100Hz (GO!), volume 0.18-0.25
 - **Celebration**: Ascending arpeggio C5→E5→G5→C6, 120ms spacing
 - **New Record fanfare**: Melody + harmony layer (thirds above, delayed 80ms)
+- **Group pop**: Quick rising chirp (600→900Hz, 120ms) — plays on word completion in fun display modes
 - All sounds use `AudioContext` with autoplay policy resume handling
 
 ## Data Model (Firestore)
@@ -154,6 +188,17 @@ Helper: `getBestWpm(userId)` returns `{ [contentBlockId]: bestWpmNumber }` from 
 - `confetti-fall`: translateY(0)→100vh with rotation and drift, 2s
 - `new-record-banner`: scale(0.5)+rotate(-2deg)→bounce→settle in 600ms
 - `countdown-pop`: scale(0.5)→1.2→1 in 500ms
+- `target-knockback`: rotateX(0)→rotateX(-90deg) + scale down, 350ms (carnival target fall)
+- `target-spark`: rotate(angle) + translateX outward, 400ms (hit particles)
+- `target-enter`: scale(0)+rotate(90deg)→scale(1), 300ms
+- `bubble-float`: translateY(0)→translateY(-8px)→0, 2.5s infinite (gentle bobbing)
+- `bubble-pop`: scale 1→1.4→0, fade, 300ms
+- `bubble-enter`: scale(0)+rotate(-10deg)→scale(1), 350ms
+- `bubble-shake`: translateX shake, 200ms (error feedback)
+- `tile-drop`: translateY(0)→120px + rotate(15deg), fade, 350ms
+- `tile-enter`: translateY(-60px)→0, 300ms
+- `group-burst`: scale 1→1.8, fade, 400ms (group completion)
+- `space-pulse`: scale 1→1.05, 800ms infinite
 
 ## Finger-to-Key Mapping Reference
 
@@ -193,10 +238,11 @@ src/
   components/
     Keyboard.jsx       — On-screen keyboard (KEY_SIZE=34, GAP=2)
     HandGuide.jsx      — SVG hands with finger highlights
+    FunDisplay.jsx     — Fun typing modes for KB drills (TargetShoot, BubblePop, TileDrop)
   screens/
     UserSelect.jsx     — Netflix-style profile picker
-    ContentSelect.jsx  — Content blocks grid (3-col), settings bar, resume/restart
-    TypingScreen.jsx   — Main typing interface (countdown, typing, metrics, streak)
+    ContentSelect.jsx  — Category picker (3 icons) → content list, settings, resume/restart
+    TypingScreen.jsx   — Main typing interface (countdown, typing, metrics, streak, fun modes)
     ResultsScreen.jsx  — Session results (confetti, record, heat map)
     AdminScreen.jsx    — Users/Content/Stats/Settings tabs
   lib/
