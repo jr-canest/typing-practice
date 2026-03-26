@@ -1,9 +1,13 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 
 export default function PinEntry({ title, onSubmit, onCancel }) {
   const [pin, setPin] = useState('')
   const [error, setError] = useState(false)
   const pinRef = useRef('')
+  const containerRef = useRef(null)
+
+  // Focus container for keyboard input
+  useEffect(() => { containerRef.current?.focus() }, [])
 
   async function handleDigit(d) {
     if (pinRef.current.length >= 4) return
@@ -30,8 +34,14 @@ export default function PinEntry({ title, onSubmit, onCancel }) {
     setError(false)
   }
 
+  function handleKeyDown(e) {
+    if (e.key >= '0' && e.key <= '9') handleDigit(e.key)
+    else if (e.key === 'Backspace') handleDelete()
+    else if (e.key === 'Escape') onCancel()
+  }
+
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+    <div ref={containerRef} tabIndex={0} onKeyDown={handleKeyDown} className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 outline-none">
       <div className="bg-white rounded-2xl p-8 shadow-2xl w-80 text-center">
         <h2 className="text-xl font-bold mb-2 text-gray-800">{title}</h2>
 
