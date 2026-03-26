@@ -95,6 +95,26 @@ export default function TypingScreen({ user, session, onFinish, onQuit }) {
   const wpmTimerRef = useRef(null)
   const completedWordsRef = useRef(0)
 
+  // Prevent screen sleep during typing session (Wake Lock API)
+  useEffect(() => {
+    let wakeLock = null
+    async function requestWakeLock() {
+      try {
+        if ('wakeLock' in navigator) {
+          wakeLock = await navigator.wakeLock.request('screen')
+        }
+      } catch (e) { /* Wake Lock not supported or denied */ }
+    }
+    requestWakeLock()
+    // Re-acquire on visibility change (iOS releases on tab switch)
+    const onVisChange = () => { if (document.visibilityState === 'visible') requestWakeLock() }
+    document.addEventListener('visibilitychange', onVisChange)
+    return () => {
+      wakeLock?.release()
+      document.removeEventListener('visibilitychange', onVisChange)
+    }
+  }, [])
+
   // Pre-load sounds on mount
   useEffect(() => { initSounds() }, [])
 

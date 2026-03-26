@@ -213,6 +213,9 @@ export default function ContentSelect({ user, onStart, onBack, initialCategory }
                     {seriesBlocks.map((block, idx) => {
                       const isSelected = selectedBlock?.id === block.id
                       const best = bestWpms[block.id]
+                      const hasProgress = progress[block.id]?.lastWordIndex > 0
+                      const isCompleted = !!best
+                      const isInProgress = hasProgress && !isCompleted
                       return (
                         <button
                           key={block.id}
@@ -220,16 +223,24 @@ export default function ContentSelect({ user, onStart, onBack, initialCategory }
                           className={`p-3 rounded-2xl text-left transition-all backdrop-blur-sm ${
                             isSelected
                               ? 'bg-blue-500 text-white shadow-lg scale-[1.02]'
-                              : 'bg-white/80 hover:bg-white hover:scale-[1.01]'
+                              : isCompleted
+                                ? 'bg-green-50/80 border border-green-200/50 hover:bg-green-50 hover:scale-[1.01]'
+                                : isInProgress
+                                  ? 'bg-amber-50/80 border border-amber-200/50 hover:bg-amber-50 hover:scale-[1.01]'
+                                  : 'bg-white/80 hover:bg-white hover:scale-[1.01]'
                           }`}
                           style={{ boxShadow: isSelected ? undefined : cardShadow }}
                         >
-                          <div className="text-[10px] text-gray-400 font-medium mb-0.5" style={isSelected ? { color: 'rgba(255,255,255,0.7)' } : {}}>Section {idx + 1}</div>
+                          <div className="text-[10px] font-medium mb-0.5 flex items-center gap-1" style={isSelected ? { color: 'rgba(255,255,255,0.7)' } : { color: '#9ca3af' }}>
+                            <span>Section {idx + 1}</span>
+                            {isCompleted && !isSelected && <span className="text-green-500">✓</span>}
+                            {isInProgress && !isSelected && <span className="text-amber-500">⋯</span>}
+                          </div>
                           <div className="font-medium text-xs truncate">{block.title}</div>
                           <div className={`text-[10px] flex items-center gap-1 mt-0.5 ${isSelected ? 'text-blue-100' : 'text-gray-400'}`}>
                             <span>{block.wordCount} words</span>
                             {best && (
-                              <span className={`font-semibold ${isSelected ? 'text-blue-100' : 'text-amber-500'}`}>· 🏅 {best}</span>
+                              <span className={`font-semibold ${isSelected ? 'text-blue-100' : 'text-amber-500'}`}>· {best} WPM</span>
                             )}
                           </div>
                         </button>
