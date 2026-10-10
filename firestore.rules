@@ -1,8 +1,57 @@
 rules_version = '2';
+// Shared Firestore for the typing-practice-jrc project. This ONE file is the
+// source of truth for every app that uses this database:
+//   - Typing Practice: users/**, contentBlocks/**, config/** (open, as before)
+//   - Jam Jar: families/{familyId}/** (deploy from here; Jam Jar's firebase.json
+//     does not deploy rules)
+// Deploy: firebase deploy --only firestore:rules --project typing-practice-jrc --account jr.canest@gmail.com
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /{document=**} {
+
+    // ---------- Typing Practice (unchanged access) ----------
+    match /users/{document=**} {
       allow read, write: if true;
+    }
+    match /contentBlocks/{document=**} {
+      allow read, write: if true;
+    }
+    match /config/{document=**} {
+      allow read, write: if true;
+    }
+
+    // ---------- Jam Jar ----------
+    // A family's id is the SHA-256 of its family code, so only devices that
+    // know the code can find it. Nobody can list families.
+    match /families/{familyId} {
+      allow get: if isFamilyId(familyId);
+      allow list: if false;
+      allow create: if isFamilyId(familyId)
+        && request.resource.data.keys().hasOnly(['createdAt', 'parentPinHash'])
+        && request.resource.data.createdAt is number;
+      allow update: if request.resource.data.keys().hasOnly(['createdAt', 'parentPinHash'])
+        && request.resource.data.createdAt == resource.data.createdAt;
+      allow delete: if false;
+
+      match /profiles/{id} {
+        allow read: if true;
+        allow write: if familyExists(familyId) && (request.resource == null || request.resource.data.keys().hasOnly(['id', 'name', 'avatar', 'color', 'pinHash']));
+      }
+      match /songs/{id} {
+        allow read: if true;
+        allow write: if familyExists(familyId) && (request.resource == null || request.resource.data.id == id);
+      }
+      match /voices/{id} {
+        allow read: if true;
+        // ~4s of 22kHz 16-bit audio is ~240 KB as base64
+        allow write: if familyExists(familyId) && (request.resource == null || request.resource.data.pcm.size() < 600000);
+      }
+    }
+
+    function isFamilyId(id) {
+      return id.matches('^[0-9a-f]{64}$');
+    }
+    function familyExists(id) {
+      return exists(/databases/$(database)/documents/families/$(id));
     }
   }
 }
