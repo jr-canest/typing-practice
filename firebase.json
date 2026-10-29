@@ -8,6 +8,11 @@
     ],
     "redirects": [
       {
+        "source": "/",
+        "destination": "https://homeschool.jrcanest.co/typing/",
+        "type": 301
+      },
+      {
         "source": "/:rest*",
         "destination": "https://homeschool.jrcanest.co/typing/:rest*",
         "type": 301
