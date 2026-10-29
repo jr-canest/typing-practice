@@ -19,7 +19,7 @@ export async function initSounds() {
   const ctx = getContext()
 
   try {
-    const response = await fetch('/sounds/keystroke.mp3')
+    const response = await fetch(`${import.meta.env.BASE_URL}sounds/keystroke.mp3`)
     const arrayBuffer = await response.arrayBuffer()
     keystrokeBuffer = await ctx.decodeAudioData(arrayBuffer)
   } catch (err) {

@@ -1,13 +1,13 @@
 # Typing Practice App
 
-A typing practice app for homeschool kids. Built with React, uses Firestore for cross-device persistence. Deployed to Firebase Hosting via GitHub Actions.
+A typing practice app for homeschool kids. Built with React, uses Firestore for cross-device persistence. Lives at https://homeschool.jrcanest.co/typing since 2026-10-29 (the homeschool hub Worker in `Apps/Science Lessons` serves it from `dist/typing`; Vite base `/typing/`). Deploy: `npm run deploy` (build, copy into the hub, `wrangler deploy`). The old typing-practice-jrc.web.app is a redirect; Firestore rules still deploy with `firebase deploy --only firestore:rules`.
 
 ## Stack
 
 - React (Vite)
 - Tailwind CSS v4
 - Cloud Firestore for persistence (user data, session history, content library — syncs across devices)
-- Firebase Hosting (auto-deployed from GitHub Actions on push to main)
+- Hosting: homeschool.jrcanest.co/typing on Cloudflare (hub Worker in Apps/Science Lessons); the GitHub Actions Firebase deploy was retired 2026-10-29. Public-folder URLs must go through `import.meta.env.BASE_URL` (see src/lib/sounds.js).
 - Web Audio API for sounds (keystroke, error, countdown beeps, celebration, record fanfare)
 - No external typing libraries — built from scratch
 
@@ -265,7 +265,7 @@ public/
 .env                   — Firebase config (VITE_FIREBASE_* env vars)
 firestore.rules        — Firestore security rules
 .github/workflows/
-  firebase-hosting.yml — CI/CD: build + deploy to Firebase on push to main
+  (firebase-hosting.yml removed 2026-10-29; deploy is npm run deploy via the homeschool hub)
 ```
 
 ## Out of Scope (for now)

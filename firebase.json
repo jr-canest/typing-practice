@@ -1,11 +1,16 @@
 {
   "hosting": {
-    "public": "dist",
-    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
-    "rewrites": [
+    "public": "redirect",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "redirects": [
       {
-        "source": "**",
-        "destination": "/index.html"
+        "source": "/:rest*",
+        "destination": "https://homeschool.jrcanest.co/typing/:rest*",
+        "type": 301
       }
     ]
   },
