@@ -1,14 +1,15 @@
 // Sound engine using Web Audio API for zero-latency playback
 
-let audioCtx = null
+import { getAudioContext } from './audioKeepAlive'
+
 let keystrokeBuffer = null
 let initialized = false
 
+// The shared AudioContext from audioKeepAlive.ts (vendored from Apps/_shared, edit it there): it wakes
+// it on every key or tap, after the phone sleeps or the app comes back, and replaces it when iOS
+// leaves it stuck, so nothing here resumes it by hand.
 function getContext() {
-  if (!audioCtx) {
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)()
-  }
-  return audioCtx
+  return getAudioContext()
 }
 
 // Pre-load the keystroke sound
@@ -32,11 +33,6 @@ export function playKeystroke() {
   if (!keystrokeBuffer) return
   const ctx = getContext()
 
-  // Resume context if suspended (browser autoplay policy)
-  if (ctx.state === 'suspended') {
-    ctx.resume()
-  }
-
   const source = ctx.createBufferSource()
   source.buffer = keystrokeBuffer
 
@@ -52,7 +48,6 @@ export function playKeystroke() {
 // Countdown beep — clean digital tone, higher pitch on "Go!"
 export function playCountdownBeep(isGo = false) {
   const ctx = getContext()
-  if (ctx.state === 'suspended') ctx.resume()
 
   const duration = isGo ? 0.25 : 0.12
   const freq = isGo ? 880 : 520
@@ -78,7 +73,6 @@ export function playCountdownBeep(isGo = false) {
 // Celebration sound — ascending arpeggio chime
 export function playCelebration() {
   const ctx = getContext()
-  if (ctx.state === 'suspended') ctx.resume()
 
   const notes = [523, 659, 784, 1047] // C5, E5, G5, C6
   notes.forEach((freq, i) => {
@@ -101,7 +95,6 @@ export function playCelebration() {
 // New record fanfare — triumphant ascending with harmony
 export function playNewRecord() {
   const ctx = getContext()
-  if (ctx.state === 'suspended') ctx.resume()
 
   // Main melody: C5, E5, G5, C6 (longer, louder)
   const melody = [523, 659, 784, 1047]
@@ -143,7 +136,6 @@ export function playNewRecord() {
 // Streak milestone chime — escalating tiers for key/word streaks
 export function playStreakChime(tier = 1) {
   const ctx = getContext()
-  if (ctx.state === 'suspended') ctx.resume()
 
   if (tier === 1) {
     // Single gentle chime
@@ -187,7 +179,6 @@ export function playStreakChime(tier = 1) {
 // Group completion pop — quick bright chirp for fun modes
 export function playGroupPop() {
   const ctx = getContext()
-  if (ctx.state === 'suspended') ctx.resume()
 
   // Quick two-note chirp: rising pitch
   const osc = ctx.createOscillator()
@@ -208,10 +199,6 @@ export function playGroupPop() {
 // Generate a subtle error sound — short low buzz/thud
 export function playError() {
   const ctx = getContext()
-
-  if (ctx.state === 'suspended') {
-    ctx.resume()
-  }
 
   // Short noise burst — feels like a soft "thunk"
   const duration = 0.08

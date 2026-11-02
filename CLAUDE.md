@@ -8,7 +8,7 @@ A typing practice app for homeschool kids. Built with React, uses Firestore for 
 - Tailwind CSS v4
 - Cloud Firestore for persistence (user data, session history, content library — syncs across devices)
 - Hosting: homeschool.jrcanest.co/typing on Cloudflare (hub Worker in Apps/Science Lessons); the GitHub Actions Firebase deploy was retired 2026-10-29. Public-folder URLs must go through `import.meta.env.BASE_URL` (see src/lib/sounds.js).
-- Web Audio API for sounds (keystroke, error, countdown beeps, celebration, record fanfare)
+- Web Audio API for sounds (keystroke, error, countdown beeps, celebration, record fanfare); the AudioContext comes from `src/lib/audioKeepAlive.ts`, VENDORED from `Apps/_shared/audioKeepAlive.ts` (2026-11-02: keeps sound alive after the iPad sleeps or the app comes back). Edit the canonical file and run `Apps/_shared/sync-audio-keep-alive.sh`, never edit the copy
 - No external typing libraries — built from scratch
 
 ## Core Architecture
